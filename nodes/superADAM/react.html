@@ -1,0 +1,96 @@
+<script type="text/javascript">
+    RED.nodes.registerType('REACT',{
+        category: 'AlgoPiper',
+        color: '#0080FF',
+        defaults: {
+            module: {value:""},
+            data: {value:""}
+        },
+        inputs:1,
+        outputs:1,
+        icon: "serial.png",
+        label: function() {
+            return this.name||"REACT";
+        },
+        paletteLabel: function() {
+            return this.name||"REACT";
+        },
+        oneditprepare: function() {
+            var that = this;
+            $( "#node-input-outputs" ).spinner({
+                min:1
+            });
+
+            function functionDialogResize() {
+                var rows = $("#dialog-form>div:not(.node-text-editor-row)");
+                var height = $("#dialog-form").height();
+                for (var i=0;i<rows.size();i++) {
+                    height -= $(rows[i]).outerHeight(true);
+                }
+                var editorRow = $("#dialog-form>div.node-text-editor-row");
+                height -= (parseInt(editorRow.css("marginTop"))+parseInt(editorRow.css("marginBottom")));
+                $(".node-text-editor").css("height",height+"px");
+                that.editor.resize();
+            }
+            $( "#dialog" ).on("dialogresize", functionDialogResize);
+            $( "#dialog" ).one("dialogopen", function(ev) {
+                var size = $( "#dialog" ).dialog('option','sizeCache-function');
+                if (size) {
+                    $("#dialog").dialog('option','width',size.width);
+                    $("#dialog").dialog('option','height',size.height);
+                    functionDialogResize();
+                }
+            });
+            $( "#dialog" ).one("dialogclose", function(ev,ui) {
+                var height = $( "#dialog" ).dialog('option','height');
+                $( "#dialog" ).off("dialogresize",functionDialogResize);
+            });
+
+            this.editor = RED.editor.createEditor({
+                id: 'node-input-data-editor',
+                value: $("#node-input-data").val()
+            });
+
+            RED.library.create({
+                url:"functions", // where to get the data from
+                type:"function", // the type of object the library is for
+                editor:this.editor, // the field name the main text body goes to
+                fields:['name','outputs']
+            });
+            this.editor.focus();
+        },
+        oneditsave: function() {
+            var annot = this.editor.getSession().getAnnotations();
+            this.noerr = 0;
+            $("#node-input-noerr").val(0);
+            for (var k=0; k < annot.length; k++) {
+                //console.log(annot[k].type,":",annot[k].text, "on line", annot[k].row);
+                if (annot[k].type === "error") {
+                    $("#node-input-noerr").val(annot.length);
+                    this.noerr = annot.length;
+                }
+            }
+            $("#node-input-data").val(this.editor.getValue());
+            delete this.editor;
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="REACT">
+    <div class="form-row">
+        <label for="node-input-module"><i class="icon-tag"></i> Module</label>
+        <input type="text" id="node-input-module" placeholder="Module Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-data"><i class="icon-tag"></i> INPUT</label>
+        <input type="hidden" id="node-input-data" autofocus="autofocus">
+        <input type="hidden" id="node-input-noerr">
+    </div>
+    <div class="form-row node-text-editor-row">
+        <div style="height: 250px;" class="node-text-editor" id="node-input-data-editor" ></div>
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="REACT">
+    <p>A node that calls REACT module on input and produce the result of the computation</p>
+</script>
