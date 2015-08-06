@@ -1,5 +1,5 @@
 module.exports = function(RED) {
-    function ReactNode(config) {
+    function BasicRevEngNode(config) {
         RED.nodes.createNode(this,config);
         var node = this;
         node.status({fill:"green",shape:"dot",text:"ready .."});
@@ -17,7 +17,7 @@ module.exports = function(RED) {
             }
             this.status({fill:"blue",shape:"ring",text:"computing .."});
             request.post(
-                'http://react.algorun.org/do/run',
+                'http://basicreveng.algorun.org/do/run',
                 { form: { input: input_data } },
                 function (error, response, body) {
                     if (!error && response.statusCode == 200) {
@@ -33,5 +33,5 @@ module.exports = function(RED) {
             );
         });
     }
-    RED.nodes.registerType('REACT',ReactNode);
+    RED.nodes.registerType('BasicRevEng',BasicRevEngNode);
 }

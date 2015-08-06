@@ -1,0 +1,130 @@
+<!--
+  Copyright 2013,2015 IBM Corp.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<script type="text/x-red" data-template-name="INPUT">
+    <div class="form-row" style="text-align: center;">
+        <label for="node-input-data">INPUT</label>
+        <input type="hidden" id="node-input-data" autofocus="autofocus">
+        <input type="hidden" id="node-input-noerr">
+    </div>
+    <div class="form-row node-text-editor-row">
+        <div style="height: 250px;" class="node-text-editor" id="node-input-data-editor" ></div>
+    </div>
+    
+    
+</script>
+<script type="text/x-red" data-help-name="INPUT">
+    <p>Use this node to input data to the workflow and start it.</p>
+</script>
+
+<script type="text/javascript">
+    RED.nodes.registerType('INPUT',{
+        category: 'AlgoPiper',
+        color:"#a6bbcf",
+        defaults: {
+            data: {value:"", required:true},
+        },
+        inputs:0,
+        outputs:1,
+        icon: "inject.png",
+        label: "INPUT",
+        paletteLabel: "INPUT",
+        oneditprepare: function() {
+            var that = this;
+            $( "#node-input-outputs" ).spinner({
+                min:1
+            });
+
+            function functionDialogResize() {
+                var rows = $("#dialog-form>div:not(.node-text-editor-row)");
+                var height = $("#dialog-form").height();
+                for (var i=0;i<rows.size();i++) {
+                    height -= $(rows[i]).outerHeight(true);
+                }
+                var editorRow = $("#dialog-form>div.node-text-editor-row");
+                height -= (parseInt(editorRow.css("marginTop"))+parseInt(editorRow.css("marginBottom")));
+                $(".node-text-editor").css("height",height+"px");
+                that.editor.resize();
+            }
+            $( "#dialog" ).on("dialogresize", functionDialogResize);
+            $( "#dialog" ).one("dialogopen", function(ev) {
+                var size = $( "#dialog" ).dialog('option','sizeCache-function');
+                if (size) {
+                    $("#dialog").dialog('option','width',size.width);
+                    $("#dialog").dialog('option','height',size.height);
+                    functionDialogResize();
+                }
+            });
+            $( "#dialog" ).one("dialogclose", function(ev,ui) {
+                var height = $( "#dialog" ).dialog('option','height');
+                $( "#dialog" ).off("dialogresize",functionDialogResize);
+            });
+
+            this.editor = RED.editor.createEditor({
+                id: 'node-input-data-editor',
+                value: $("#node-input-data").val()
+            });
+
+            RED.library.create({
+                url:"functions", // where to get the data from
+                type:"function", // the type of object the library is for
+                editor:this.editor, // the field name the main text body goes to
+                fields:['name','outputs']
+            });
+            this.editor.focus();
+
+        },
+        oneditsave: function() {
+            var annot = this.editor.getSession().getAnnotations();
+            this.noerr = 0;
+            $("#node-input-noerr").val(0);
+            for (var k=0; k < annot.length; k++) {
+                //console.log(annot[k].type,":",annot[k].text, "on line", annot[k].row);
+                if (annot[k].type === "error") {
+                    $("#node-input-noerr").val(annot.length);
+                    this.noerr = annot.length;
+                }
+            }
+            $("#node-input-data").val(this.editor.getValue());
+            delete this.editor;
+        },
+        button: {
+            onclick: function() {
+                var label = "INPUT";
+                var node = this;
+                $.ajax({
+                    url: "INPUT/"+this.id,
+                    type:"POST",
+                    success: function(resp) {
+                        RED.notify(node._(" workflow started",{label:label}),"success");
+                    },
+                    error: function(jqXHR,textStatus,errorThrown) {
+                        if (jqXHR.status == 404) {
+                            RED.notify(node._("common.notification.error",{message:node._("common.notification.errors.not-deployed")}),"error");
+                        } else if (jqXHR.status == 500) {
+                            RED.notify(node._("common.notification.error",{message:node._("INPUT.errors.failed")}),"error");
+                        } else if (jqXHR.status == 0) {
+                            RED.notify(node._("common.notification.error",{message:node._("common.notification.errors.no-response")}),"error");
+                        } else {
+                            RED.notify(node._("common.notification.error",{message:node._("common.notification.errors.unexpected",{status:jqXHR.status,message:textStatus})}),"error");
+                        }
+                    }
+                });
+            }
+        }
+    });
+
+</script>

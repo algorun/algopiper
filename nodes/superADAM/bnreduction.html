@@ -1,7 +1,7 @@
 <script type="text/javascript">
-    RED.nodes.registerType('REACT',{
+    RED.nodes.registerType('BNReduction',{
         category: 'AlgoPiper',
-        color: '#0080FF',
+        color: '#00FFFF',
         defaults: {
             module: {value:""}
         },
@@ -9,21 +9,21 @@
         outputs:1,
         icon: "serial.png",
         label: function() {
-            return this.name||"REACT";
+            return this.name||"BNReduction";
         },
         paletteLabel: function() {
-            return this.name||"REACT";
+            return this.name||"BNReduction";
         }
     });
 </script>
 
-<script type="text/x-red" data-template-name="REACT">
+<script type="text/x-red" data-template-name="BNReduction">
     <div class="form-row">
         <label for="node-input-module"><i class="icon-tag"></i> Module</label>
         <input type="text" id="node-input-module" placeholder="Module Name">
     </div>
 </script>
 
-<script type="text/x-red" data-help-name="REACT">
+<script type="text/x-red" data-help-name="BNReduction">
     <p>A node that calls REACT module on input and produce the result of the computation</p>
 </script>
