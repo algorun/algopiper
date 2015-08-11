@@ -189,6 +189,7 @@ if (settings.httpNodeRoot !== false) {
     app.use(settings.httpNodeRoot,RED.httpNode);
 }
 
+settings.httpStatic = __dirname;
 if (settings.httpStatic) {
     settings.httpStaticAuth = settings.httpStaticAuth || settings.httpAuth;
     if (settings.httpStaticAuth) {
