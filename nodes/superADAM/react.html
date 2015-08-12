@@ -4,16 +4,27 @@
         color: '#0080FF',
         defaults: {
             module: {value:""},
-            log: {value:""}
+            log: {value:""},
+            outputs: {value: 1}
         },
         inputs:1,
-        outputs:1,
+        outputs: 1,
         icon: "serial.png",
         label: function() {
             return this.module||"REACT";
         },
         paletteLabel: function() {
             return this.module||"REACT";
+        },
+        oneditprepare: function() {
+            var that = this;
+            $( "#node-input-outputs" ).spinner({
+                min:1,
+            });
+            $( "#node-input-outputs" ).spinner().spinner("value", this.outputs);
+        },
+        oneditsave: function() {
+            this.outputs = $( "#node-input-outputs" ).spinner().spinner("value");
         }
     });
 </script>
@@ -30,6 +41,11 @@
           <option value="No" data-i18n="REACT.No">No</option>
         </select>
     </div>
+    <div class="form-row">
+        <label for="node-input-outputs"><i class="fa fa-random"></i> <span data-i18n="function.label.outputs"></span></label>
+        <input id="node-input-outputs" style="width: 60px; height: 1.7em;" value="1">
+    </div>
+    
 </script>
 
 <script type="text/x-red" data-help-name="REACT">
