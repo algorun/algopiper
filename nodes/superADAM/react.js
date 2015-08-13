@@ -9,28 +9,13 @@ module.exports = function(RED) {
         var request = require('request');
         var api_server = 'http://localhost:8764';
         var react_image = 'algorun/react';
-        var react_server = '';
         
         node.status({fill:"yellow", shape:"dot", text:"initializing .."});
-        // call api to run a container
-        request.post(
-            api_server + '/run',
-            { form: { image: 'algorun/react' } },
-            function (error, response, body) {
-                if (!error && response.statusCode == 200) {
-                    react_server = JSON.parse(body);
-                    if (react_server['status'] === 'success') {
-                        node.status({fill:"green", shape:"dot", text:"ready .."});
-                    } else {
-                        node.status({fill:"red", shape:"dot", text:"docker error .."});
-                    }
-                } else {
-                    node.status({fill:"red", shape:"dot", text:"docker error .."});
-                }
-            }
-        );
+        
         this.on('input', function(msg) {
-            var filename = 'workflow-log/react_output.json';
+            msg.payload = config.react_server;
+            node.send(msg);
+            /*var filename = 'workflow-log/react_output.json';
             var input_data = '';
             try{
                 var json = JSON.parse(msg.payload);
@@ -90,28 +75,7 @@ module.exports = function(RED) {
                         node.status({fill:"red",shape:"dot",text:"error .."});
                     }
                 }
-            );
-        });
-        this.on('close', function() {
-            // call api to stop a container
-            request.post(
-                api_server + '/stop',
-                { form: { container_id: react_server['container_id'] } },
-                function (error, response, body) {
-                    if (!error && response.statusCode == 200) {
-                        var stop_result = JSON.parse(body);
-                        if (stop_result['status'] === 'success') {
-                            console.log("REACT Container " + react_server['container_id'] + " stopped successfully ..");
-                        } else {
-                            console.error("REACT Container " + react_server['container_id'] + " failed to stop ..");
-                            console.error(stop_result["error_message"]);
-                        }
-                    } else {
-                        console.error("REACT Container " + react_server['container_id'] + " failed to stop ..");
-                        console.error(error);
-                    }
-                }
-            );
+            );*/
         });
     }
     RED.nodes.registerType('REACT',ReactNode);

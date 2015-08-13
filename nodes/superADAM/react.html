@@ -1,11 +1,21 @@
 <script type="text/javascript">
+    var algomanager = "http://localhost:8764";
+    var jqxhr = $.get(this.algomanager + "/api/v1/status", {})
+	   .done(function(data,textStatus,jqXHR) {
+           // The server is running. Let's deploy it here
+           
+       })
+	   .fail(function() {
+           alert("We couldn't connect to AlgoManager :(");
+       });
     RED.nodes.registerType('REACT',{
         category: 'AlgoPiper',
         color: '#0080FF',
         defaults: {
             module: {value:""},
             log: {value:""},
-            outputs: {value: 1}
+            outputs: {value: 1},
+            react_server: {value: algomanager}
         },
         inputs:1,
         outputs: 1,
@@ -25,8 +35,26 @@
         },
         oneditsave: function() {
             this.outputs = $( "#node-input-outputs" ).spinner().spinner("value");
+            
+            
         }
     });
+    /*$.post(
+        'http://localhost:8764/api/v1/deploy',
+        { form: { image: 'algorun/react' } },
+        function (error, response, body) {
+            if (!error && response.statusCode == 200) {
+                react_server = JSON.parse(body);
+                if (react_server['status'] === 'success') {
+                    node.status({fill:"green", shape:"dot", text:"ready .."});
+                } else {
+                    node.status({fill:"red", shape:"dot", text:"docker error .."});
+                }
+            } else {
+                node.status({fill:"red", shape:"dot", text:"docker error .."});
+            }
+        }
+    );*/
 </script>
 
 <script type="text/x-red" data-template-name="REACT">
@@ -45,7 +73,6 @@
         <label for="node-input-outputs"><i class="fa fa-random"></i> <span data-i18n="function.label.outputs"></span></label>
         <input id="node-input-outputs" style="width: 60px; height: 1.7em;" value="1">
     </div>
-    
 </script>
 
 <script type="text/x-red" data-help-name="REACT">
