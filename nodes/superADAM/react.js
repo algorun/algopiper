@@ -18,7 +18,7 @@ module.exports = function(RED) {
                 
                 // now algomanager is running. deploy react
                 request.post(config.algomanager + '/api/v1/deploy',
-                       { form: { image: config.reactimage } },
+                       { form: { image: config.reactimage, node_id: node.id } },
                        function (error, response, body) {
                             if (!error && response.statusCode == 200) {
                                 var deploy_result = JSON.parse(body);

@@ -1,23 +1,61 @@
 <script type="text/javascript">
-    /*var jqxhr = $.get(algomanager + '/api/v1/status', {})
-	   .done(function(data,textStatus,jqXHR) {
-           // The server is running. Let's deploy react here
-           var qwerd = $.post(algomanager + '/api/v1/deploy', {image: 'algorun/react'})
-	           .done(function(data,textStatus,qwerd) {
-                    if(data['status'] === 'success'){
-                        alert(data['endpoint']);
-                    } else {
-                        alert(data['error_message']);
-                    }
-                })
-	           .fail(function(data,textStatus,qwerd) {
-                    alert("We couldn't deploy REACT node");
-                });
-           
-            })
-	   .fail(function() {
-           alert("We couldn't connect to AlgoManager :(");
-       });*/
+    var singleComment = 1;
+    var multiComment = 2;   
+
+	function stripJsonComments(str) {
+		var currentChar;
+		var nextChar;
+		var insideString = false;
+		var insideComment = false;
+		var ret = '';
+
+		for (var i = 0; i < str.length; i++) {
+			currentChar = str[i];
+			nextChar = str[i + 1];
+
+			if (!insideComment && currentChar === '"') {
+				var escaped = str[i - 1] === '\\' && str[i - 2] !== '\\';
+				if (!insideComment && !escaped && currentChar === '"') {
+					insideString = !insideString;
+				}
+			}
+
+			if (insideString) {
+				ret += currentChar;
+				continue;
+			}
+
+			if (!insideComment && currentChar + nextChar === '//') {
+				insideComment = singleComment;
+				i++;
+			} else if (insideComment === singleComment && currentChar + nextChar === '\r\n') {
+				insideComment = false;
+				i++;
+				ret += currentChar;
+				ret += nextChar;
+				continue;
+			} else if (insideComment === singleComment && currentChar === '\n') {
+				insideComment = false;
+			} else if (!insideComment && currentChar + nextChar === '/*') {
+				insideComment = multiComment;
+				i++;
+				continue;
+			} else if (insideComment === multiComment && currentChar + nextChar === '*/') {
+				insideComment = false;
+				i++;
+				continue;
+			}
+
+			if (insideComment) {
+				continue;
+			}
+
+			ret += currentChar;
+		}
+
+		return ret;
+	}
+    
     RED.nodes.registerType('REACT',{
         category: 'AlgoPiper',
         color: '#0080FF',
@@ -31,8 +69,68 @@
         inputs:1,
         outputs: 1,
         icon: "serial.png",
-        label: "REACT",
-        paletteLabel: "REACT",
+        label: function(){
+            return this.module || "REACT";
+        },
+        paletteLabel: function(){
+            return this.module || "REACT";
+        },
+        info: function() {
+            var react_server = '';
+            jQuery.ajax({
+                url: this.algomanager + '/api/v1/status',
+                data: {node_id: this.id},
+                success: function(result) {
+                    if(result["endpoint"]){
+                        react_server = result["endpoint"];
+                    }
+                  },
+                async: false
+            });
+            if(react_server !== ''){
+                var react_manifest = "unknown";
+                jQuery.ajax({
+                    url: react_server + '/v1/manifest',
+                    success: function(result) {
+                        react_manifest = result["responseText"];
+                    },
+                    error: function(result) {
+                        react_manifest = result["responseText"];
+                    },
+                    async: false
+                });
+                if(react_manifest !== 'unknown'){
+                    var info_tab = '';
+                    react_manifest = JSON.parse(stripJsonComments(react_manifest));
+                    info_tab += '#' + react_manifest["algo_name"] + '\n';
+                    for(var i = 0;i <react_manifest["algo_authors"].length; i++) {
+                        if(i == 0) {
+                            info_tab += react_manifest["algo_authors"][i]["name"] + '\n';
+                        } else {
+                            info_tab += ', ' + react_manifest["algo_authors"][i]["name"] + '\n';
+                        }
+                    }
+                    info_tab += '___\n';
+                    info_tab += '# Summary\ntags: ';
+                    for(var i = 0;i<react_manifest["algo_keywords"].length; i++){
+                        if(i == 0) {
+                            info_tab += react_manifest["algo_keywords"][i] + '\n';
+                        } else {
+                            info_tab += ', ' + react_manifest["algo_keywords"][i] + '\n';
+                        }
+                    }
+                    info_tab += '\nalgo_summary: You can try this algorithm here: [http://react.algorun.org](http://react.algorun.org)\n';
+                    info_tab += '___\n';
+                    info_tab += '# Description\n' + react_manifest["algo_description"].replace('<br>', '\n') + '\n';
+                    info_tab += '\nmore information: ' + react_manifest["algo_website"] + '\n';
+                    info_tab += '___\n';
+                    info_tab += '# About AlgoRun\n';
+                    info_tab += 'This algorithm is provided to you by AlgoRun. AlgoRun aims at fixing computational science reproducibility by offering an easy way to publish and use algorithms. More information on [http://algorun.org](http://algorun.org)';
+                    return info_tab;   
+                }
+            }
+            return 'Cannot load info from node!';
+        },
         oneditprepare: function() {
             var that = this;
             $( "#node-input-outputs" ).spinner({
@@ -44,22 +142,6 @@
             this.outputs = $( "#node-input-outputs" ).spinner().spinner("value");
         }
     });
-    /*$.post(
-        'http://localhost:8764/api/v1/deploy',
-        { form: { image: 'algorun/react' } },
-        function (error, response, body) {
-            if (!error && response.statusCode == 200) {
-                react_server = JSON.parse(body);
-                if (react_server['status'] === 'success') {
-                    node.status({fill:"green", shape:"dot", text:"ready .."});
-                } else {
-                    node.status({fill:"red", shape:"dot", text:"docker error .."});
-                }
-            } else {
-                node.status({fill:"red", shape:"dot", text:"docker error .."});
-            }
-        }
-    );*/
 </script>
 
 <script type="text/x-red" data-template-name="REACT">
@@ -81,6 +163,5 @@
 </script>
 
 <script type="text/x-red" data-help-name="REACT">
-    alert('asdasdasd');
-    <p>A node that calls REACT module on input and produce the result of the computation</p>
+    
 </script>
