@@ -1,13 +1,23 @@
 <script type="text/javascript">
-    var algomanager = "http://localhost:8764";
-    var jqxhr = $.get(this.algomanager + "/api/v1/status", {})
+    /*var jqxhr = $.get(algomanager + '/api/v1/status', {})
 	   .done(function(data,textStatus,jqXHR) {
-           // The server is running. Let's deploy it here
+           // The server is running. Let's deploy react here
+           var qwerd = $.post(algomanager + '/api/v1/deploy', {image: 'algorun/react'})
+	           .done(function(data,textStatus,qwerd) {
+                    if(data['status'] === 'success'){
+                        alert(data['endpoint']);
+                    } else {
+                        alert(data['error_message']);
+                    }
+                })
+	           .fail(function(data,textStatus,qwerd) {
+                    alert("We couldn't deploy REACT node");
+                });
            
-       })
+            })
 	   .fail(function() {
            alert("We couldn't connect to AlgoManager :(");
-       });
+       });*/
     RED.nodes.registerType('REACT',{
         category: 'AlgoPiper',
         color: '#0080FF',
@@ -15,17 +25,14 @@
             module: {value:""},
             log: {value:""},
             outputs: {value: 1},
-            react_server: {value: algomanager}
+            algomanager: {value: "http://localhost:8764"},
+            reactimage: {value: "algorun/react"}
         },
         inputs:1,
         outputs: 1,
         icon: "serial.png",
-        label: function() {
-            return this.module||"REACT";
-        },
-        paletteLabel: function() {
-            return this.module||"REACT";
-        },
+        label: "REACT",
+        paletteLabel: "REACT",
         oneditprepare: function() {
             var that = this;
             $( "#node-input-outputs" ).spinner({
@@ -35,8 +42,6 @@
         },
         oneditsave: function() {
             this.outputs = $( "#node-input-outputs" ).spinner().spinner("value");
-            
-            
         }
     });
     /*$.post(
@@ -76,5 +81,6 @@
 </script>
 
 <script type="text/x-red" data-help-name="REACT">
+    alert('asdasdasd');
     <p>A node that calls REACT module on input and produce the result of the computation</p>
 </script>

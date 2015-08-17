@@ -16,7 +16,6 @@
 
 module.exports = function(RED) {
     "use strict";
-    var cron = require("cron");
 
     function InjectNode(n) {
         RED.nodes.createNode(this,n);
