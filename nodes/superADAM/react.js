@@ -45,6 +45,7 @@ module.exports = function(RED) {
             if(!ready) {
                 msg.payload = 'node ' + this.id + ' is not ready';
                 node.send(msg);
+                node.status({fill:"red", shape:"dot", text:"hit deploy again!"});
                 return;
             }
             var filename = 'workflow-log/' + this.id + '.json';

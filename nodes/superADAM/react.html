@@ -76,21 +76,24 @@
             return this.module || "REACT";
         },
         info: function() {
-            var react_server = '';
+            var react_endpoint = '';
             jQuery.ajax({
                 url: this.algomanager + '/api/v1/status',
                 data: {node_id: this.id},
                 success: function(result) {
                     if(result["endpoint"]){
-                        react_server = result["endpoint"];
+                        react_endpoint = result["endpoint"];
                     }
                   },
                 async: false
             });
-            if(react_server !== ''){
+            if(react_endpoint === 'not found'){
+                return 'info will be available after you click deploy ..';
+            }
+            if(react_endpoint !== ''){
                 var react_manifest = "unknown";
                 jQuery.ajax({
-                    url: react_server + '/v1/manifest',
+                    url: react_endpoint + '/v1/manifest',
                     success: function(result) {
                         react_manifest = result["responseText"];
                     },
@@ -140,7 +143,8 @@
         },
         oneditsave: function() {
             this.outputs = $( "#node-input-outputs" ).spinner().spinner("value");
-        }
+        },
+        onpaletteadd: function(){}
     });
 </script>
 

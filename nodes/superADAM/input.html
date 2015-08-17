@@ -23,7 +23,10 @@
     <div class="form-row node-text-editor-row">
         <div style="height: 250px;" class="node-text-editor" id="node-input-data-editor" ></div>
     </div>
-    
+    <div class="form-row" style="text-align: center;">
+        <label for="file-input"><button type="button" id="upload-button">Upload Data</button></label>
+        <input id='file-input' type="file" style="display: none;"/>
+    </div>
     
 </script>
 <script type="text/x-red" data-help-name="INPUT">
@@ -85,7 +88,22 @@
                 fields:['name','outputs']
             });
             this.editor.focus();
-
+            var data_editor = this.editor;
+            
+            if (window.File && window.FileReader && window.FileList && window.Blob) {
+                function handleFileSelect(evt) {
+                    var files = evt.target.files; // FileList object
+                    var r = new FileReader();
+                    f = files[0];
+                    r.onload = function(e) { 
+	                   var contents = e.target.result;
+                        data_editor.setValue(contents);
+                    }
+                    r.readAsText(f);
+                }
+                document.getElementById('file-input').addEventListener('change', handleFileSelect, false);
+                $("#upload-button").on('click', function(){document.getElementById("file-input").click();});
+            }
         },
         oneditsave: function() {
             var annot = this.editor.getSession().getAnnotations();
