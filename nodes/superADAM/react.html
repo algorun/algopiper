@@ -135,16 +135,84 @@
             return 'Cannot load info from node!';
         },
         oneditprepare: function() {
+            var node = this;
             var that = this;
             $( "#node-input-outputs" ).spinner({
                 min:1,
             });
             $( "#node-input-outputs" ).spinner().spinner("value", this.outputs);
+            $('#wrapper').dialog({
+                autoOpen: false,
+                title: 'Parameter Configuration'
+            });
+            $("#params-button").on('click', function(){
+                $("#wrapper").dialog( "option", "width", 400 );
+                $('#wrapper').dialog('open');
+                var react_endpoint = '';
+                jQuery.ajax({
+                    url: node.algomanager + '/api/v1/status',
+                    data: {node_id: node.id},
+                    success: function(result) {
+                        if(result["endpoint"]){
+                            react_endpoint = result["endpoint"];
+                        }
+                    },
+                    async: false
+                });
+                if(react_endpoint === 'not found'){
+                    $('#wrapper').html("<p style='text-align: center;'>parameters not available!<br>deploy the node again ..</p>");
+                    return false;
+                }
+                if(react_endpoint !== ''){
+                    var react_manifest = "unknown";
+                    jQuery.ajax({
+                        url: react_endpoint + '/v1/manifest',
+                        success: function(result) {
+                            react_manifest = result["responseText"];
+                        },
+                        error: function(result) {
+                            react_manifest = result["responseText"];
+                        },
+                        async: false
+                    });
+                    if(react_manifest !== 'unknown'){
+                        var algo_params = {};
+                        react_manifest = JSON.parse(stripJsonComments(react_manifest));
+                        algo_params = react_manifest["algo_parameters"];
+                        // render parameters
+                        var params_ui = "<div style='overflow-y: scroll; height: 205px;'><table style='width: 100%; background-color: #F2F2F2;'>";                
+                        for (var key in algo_params) {
+                            if (algo_params.hasOwnProperty(key)) {
+                                params_ui += "<tr><td style='width:50%; text-align: center; '>" + key + "</td><td style='text-align: center;'><input type='text' name='param' style='width:75px; text-align: center; margin-top: 7px;' value='" + algo_params[key]+ "'></td></tr>";
+                            }
+                        }
+                        params_ui += "</table></div><br>";
+                    }
+                } else {
+                    $('#wrapper').html("<p style='text-align: center;'>cannot connect to algomanager</p>");
+                    return false;
+                }
+                
+                // render buttons
+                params_ui += "<table style='width:100%;'><tr>";
+                
+                params_ui += "<td style='width:50%; text-align: center;'><button id='defaults-button'style='width: 100%;'>reset defaults</button></td>";
+                
+                params_ui += "<td style='width:50%; text-align: center;'><button id='save-button' style='width: 100%;' >save</button></td>";
+                params_ui += "</tr></table>";
+                $('#wrapper').html(params_ui);
+                $('#save-button').on('click', function(){
+                    alert('save clicked');
+                });
+                $('#defaults-button').on('click', function(){
+                    alert('def clicked');
+                });
+                return false;
+            });
         },
         oneditsave: function() {
             this.outputs = $( "#node-input-outputs" ).spinner().spinner("value");
-        },
-        onpaletteadd: function(){}
+        }
     });
 </script>
 
@@ -163,6 +231,11 @@
     <div class="form-row">
         <label for="node-input-outputs"><i class="fa fa-random"></i> <span data-i18n="function.label.outputs"></span></label>
         <input id="node-input-outputs" style="width: 60px; height: 1.7em;" value="1">
+    </div>
+    <div class="form-row" style="text-align: center;">
+        <label for="params"><button type="button" id="params-button">Configure Parameters</button></label>
+    </div>
+    <div id="wrapper">
     </div>
 </script>
 
