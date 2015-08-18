@@ -1,37 +1,119 @@
 module.exports = function(RED) {
+    "use strict";
+    var fs = require("fs-extra");
+    var os = require("os");
+    
     function SddsNode(config) {
         RED.nodes.createNode(this,config);
         var node = this;
-        node.status({fill:"green",shape:"dot",text:"ready .."});
         var request = require('request');
+        var ready = false;
+        var sdds_server = "";
+        
+        node.status({fill:"yellow", shape:"dot", text:"connecting .."});
+        // check algomanager status
+        request(config.algomanager + '/api/v1/status', function (error, response, body) {
+            if (!error && response.statusCode == 200) {
+                node.status({fill:"yellow", shape:"dot", text:"initializing .."});
+                
+                // now algomanager is running. deploy sdds
+                request.post(config.algomanager + '/api/v1/deploy',
+                       { form: { image: config.sddsimage, node_id: node.id } },
+                       function (error, response, body) {
+                            if (!error && response.statusCode == 200) {
+                                var deploy_result = JSON.parse(body);
+                                if(deploy_result["status"] === "success") {
+                                    node.status({fill:"green",shape:"dot",text:"ready .."});
+                                    ready = true;
+                                    sdds_server = deploy_result["endpoint"];
+                                } else {
+                                    node.status({fill:"red",shape:"dot",text:body});
+                                    ready = false;
+                                    node.status({fill:"red",shape:"dot",text:deploy_result["error_message"]});
+                                }
+                            } else {
+                                node.status({fill:"red",shape:"dot",text:error});
+                            }
+                });
+            } else {
+                node.status({fill:"red", shape:"dot", text:"cannot connect to algomanager"});
+            }
+        });
+        
+        
         this.on('input', function(msg) {
-            input_data = '';
-            try{
-                json = JSON.parse(msg.payload);
-                input_data = msg.payload;
-            }catch(e) {
-                msg.payload = 'input data is not in JSON format';
+            if(!ready) {
+                msg.payload = 'node ' + this.id + ' is not ready';
                 node.send(msg);
-                node.status({fill:"red",shape:"dot",text:"error .."});
+                node.status({fill:"red", shape:"dot", text:"hit deploy again!"});
+                return;
+            }
+            var filename = 'workflow-log/' + this.id + '.json';
+            var input_data = '';
+            try{
+                var json = JSON.parse(msg.payload);
+                input_data = msg.payload.trim();
+            }catch(e) {
+                msg.payload = e.message;
+                node.send(msg);
+                node.status({fill:"red",shape:"dot",text:"error parsing input.."});
                 return;
             }
             this.status({fill:"blue",shape:"ring",text:"computing .."});
             request.post(
-                'http://sdds.algorun.org/do/run',
+                sdds_server + '/v1/run',
                 { form: { input: input_data } },
                 function (error, response, body) {
                     if (!error && response.statusCode == 200) {
                         msg.payload = body;
-                        node.send(msg);
-                        node.status({fill:"blue",shape:"dot",text:"done .."});
+                        
+                        if(config.log !== "No"){
+                            // write data to a file
+                            fs.writeFile(filename, body, "binary", function (err) {
+                                if (err) {
+                                    if ((err.code === "ENOENT")) {
+                                        fs.ensureFile(filename, function (err) {
+                                            if (err) { node.error(RED._("file.errors.createfail",{error:err.toString()}),msg); }
+                                            else {
+                                                fs.writeFile(filename, body, "binary", function (err) {
+                                                    if (err) { node.error(RED._("file.errors.writefail",{error:err.toString()}),msg); }
+                                                });
+                                            }
+                                        });
+                                    }
+                                    else { node.error(RED._("file.errors.writefail",{error:err.toString()}),msg); }
+                                }
+                                else if (RED.settings.verbose) { node.log(RED._("file.status.wrotefile",{file:filename})); }
+                            });
+                            
+                            require('dns').lookup(require('os').hostname(), function (err, add, fam) {
+                                var file_path = 'http://' + add + ':1880/' + filename;
+                                sendDebug({id:node.id,name:"SDDS LOG",topic:"computation result",msg:file_path,_path:msg._path});
+                            });
+                        }
+                        if(config.outputs > 1) {
+                            var msgs = [];
+                            for(var i = 0; i< config.outputs; i++) {
+                                msgs.push(msg);
+                            }
+                            node.send(msgs);
+                            node.status({fill:"blue",shape:"dot",text:"done .."});
+                        } else {
+                            node.send(msg);
+                            node.status({fill:"blue",shape:"dot",text:"done .."});
+                        }
                     } else {
                         msg.payload = error;
                         node.send(msg);
-                        node.status({fill:"red",shape:"dot",text:"error .."});
+                        node.status({fill:"red",shape:"dot",text:error});
                     }
                 }
             );
         });
     }
     RED.nodes.registerType('SDDS',SddsNode);
+    
+    function sendDebug(msg) {
+        RED.comms.publish("OUTPUT",msg);
+    }
 }

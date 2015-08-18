@@ -57,16 +57,15 @@
 	}
     
     var algo_params = {};
-    var firsParamsLoad;
     var default_params = {};
-    function updateParams(server){
+    function updateParams(server, showConfirmation){
         var jqxhr = $.post( server, algo_params)
                 .done(function(data,textStatus,jqXHR) {
                     if(data.substring(0, 6) == "Cannot"){
                         alert("There is no such parameters!");
                         algo_params = default_params;
                     } else {
-                        if(!firsParamsLoad){
+                        if(showConfirmation){
                             alert("Parameters saved ..");
                         }
                     }
@@ -200,10 +199,7 @@
                         default_params = react_manifest["algo_parameters"];
                         if(jQuery.isEmptyObject(algo_params)){
                             algo_params = react_manifest["algo_parameters"];
-                            firsParamsLoad = true;
-                            updateParams(react_endpoint + '/v1/config');
-                        } else {
-                            firsParamsLoad = false;
+                            updateParams(react_endpoint + '/v1/config', false);
                         }
                         // render parameters
                         var params_ui = "<div style='overflow-y: scroll; height: 205px;'><table style='width: 100%; background-color: #F2F2F2;'>";                
@@ -237,13 +233,13 @@
                             algo_params[key] = new_value;
                         }
                     }
-                    updateParams(react_endpoint + '/v1/config');
+                    updateParams(react_endpoint + '/v1/config', true);
                     $(this).closest('.ui-dialog-content').dialog('close'); 
                 });
                 
                 $('#defaults-button').on('click', function(){
                     algo_params = default_params;
-                    updateParams(react_endpoint + '/v1/config');
+                    updateParams(react_endpoint + '/v1/config', true);
                     $(this).closest('.ui-dialog-content').dialog('close'); 
                 });
                 return false;
