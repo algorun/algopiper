@@ -67,7 +67,7 @@ module.exports = function(RED) {
                     if (!error && response.statusCode == 200) {
                         msg.payload = body;
                         
-                        if(config.log === "Yes"){
+                        if(config.log !== "No"){
                             // write data to a file
                             fs.writeFile(filename, body, "binary", function (err) {
                                 if (err) {
