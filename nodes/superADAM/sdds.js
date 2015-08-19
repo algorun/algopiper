@@ -91,17 +91,8 @@ module.exports = function(RED) {
                                 sendDebug({id:node.id,name:"SDDS LOG",topic:"computation result",msg:file_path,_path:msg._path});
                             });
                         }
-                        if(config.outputs > 1) {
-                            var msgs = [];
-                            for(var i = 0; i< config.outputs; i++) {
-                                msgs.push(msg);
-                            }
-                            node.send(msgs);
-                            node.status({fill:"blue",shape:"dot",text:"done .."});
-                        } else {
-                            node.send(msg);
-                            node.status({fill:"blue",shape:"dot",text:"done .."});
-                        }
+                        node.send(msg);
+                        node.status({fill:"blue",shape:"dot",text:"done .."});
                     } else {
                         msg.payload = error;
                         node.send(msg);

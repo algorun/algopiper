@@ -82,7 +82,6 @@
         defaults: {
             module: {value:""},
             log: {value:""},
-            outputs: {value: 1},
             algomanager: {value: "http://localhost:8764"},
             reactimage: {value: "algorun/react"}
         },
@@ -156,10 +155,6 @@
         },
         oneditprepare: function() {
             var node = this;
-            $( "#node-input-outputs" ).spinner({
-                min:1,
-            });
-            $( "#node-input-outputs" ).spinner().spinner("value", this.outputs);
             $('#wrapper').dialog({
                 autoOpen: false,
                 title: 'Parameter Configuration'
@@ -244,9 +239,6 @@
                 });
                 return false;
             });
-        },
-        oneditsave: function() {
-            this.outputs = $( "#node-input-outputs" ).spinner().spinner("value");
         }
     });
 </script>
@@ -262,10 +254,6 @@
           <option value="Yes" data-i18n="REACT.Yes">Yes</option>
           <option value="No" data-i18n="REACT.No">No</option>
         </select>
-    </div>
-    <div class="form-row">
-        <label for="node-input-outputs"><i class="fa fa-random"></i> <span data-i18n="function.label.outputs"></span></label>
-        <input id="node-input-outputs" style="width: 60px; height: 1.7em;" value="1">
     </div>
     <div class="form-row" style="text-align: center;">
         <label for="params"><button type="button" id="params-button">Configure Parameters</button></label>

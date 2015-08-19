@@ -1,18 +1,21 @@
-<script type="text/javascript">
+<script type="text/javascript">    
     RED.nodes.registerType('BasicRevEng',{
         category: 'AlgoPiper',
         color: '#0080FF',
         defaults: {
-            module: {value:""}
+            module: {value:""},
+            log: {value:""},
+            algomanager: {value: "http://localhost:8764"},
+            basicrevengimage: {value: "ahosny/basicreveng"}
         },
         inputs:1,
-        outputs:1,
+        outputs: 1,
         icon: "serial.png",
-        label: function() {
-            return this.module||"BasicRevEng";
+        label: function(){
+            return this.module || "BasicRevEng";
         },
-        paletteLabel: function() {
-            return this.module||"BasicRevEng";
+        paletteLabel: function(){
+            return this.module || "BasicRevEng";
         }
     });
 </script>
@@ -22,8 +25,15 @@
         <label for="node-input-module"><i class="icon-tag"></i> Module</label>
         <input type="text" id="node-input-module" placeholder="Module Name">
     </div>
+    <div class="form-row">
+        <label for="node-input-log"><i class="icon-tag"></i> Debug</label>
+        <select id="node-input-log" style="width:73%">
+          <option value="Yes" data-i18n="BasicRevEng.Yes">Yes</option>
+          <option value="No" data-i18n="BasicRevEng.No">No</option>
+        </select>
+    </div>
 </script>
 
 <script type="text/x-red" data-help-name="BasicRevEng">
-    <p>A node that calls REACT module on input and produce the result of the computation</p>
+    
 </script>
