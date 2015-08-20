@@ -65,7 +65,15 @@ module.exports = {
 
     // You can protect the user interface with a userid and password by using the following property.
     // The password must be an md5 hash  eg.. 5f4dcc3b5aa765d61d8327deb882cf99 ('password')
-    //httpAdminAuth: {user:"user",pass:"5f4dcc3b5aa765d61d8327deb882cf99"},
+    adminAuth: {
+	sessionExpiryTime: 86400,
+    	type: "credentials",
+    	users: [{
+	        username: "admin",
+	        password: "$2a$08$XDByZzrrWaf9lH3HZsQ3GOGn9/KNfWxIgxafXtnxLK8VW5EHUIDB2",
+	        permissions: "*"
+	    }]
+    },
 
     // Some nodes, such as HTTP In, can be used to listen for incoming http requests.
     // By default, these are served relative to '/'. The following property
@@ -154,7 +162,7 @@ module.exports = {
     // palette. If a node's category is not in the list, the category will get
     // added to the end of the palette.
     // If not set, the following default order is used:
-    //paletteCategories: ['subflows', 'input', 'output', 'function', 'social', 'storage', 'analysis', 'advanced'],
+    paletteCategories: ['AlgoPiper', 'input', 'output', 'function', 'social', 'storage', 'analysis', 'advanced', 'subflows',],
 
     // Configure the logging output
     logging: {
