@@ -3,7 +3,7 @@ module.exports = function(RED) {
     var fs = require("fs-extra");
     var os = require("os");
     
-    function SddsNode(config) {
+    function CycloneNode(config) {
         RED.nodes.createNode(this,config);
         var node = this;
         var request = require('request');
@@ -102,7 +102,7 @@ module.exports = function(RED) {
             );
         });
     }
-    RED.nodes.registerType('Cyclone',SddsNode);
+    RED.nodes.registerType('Cyclone',CycloneNode);
     
     function sendDebug(msg) {
         RED.comms.publish("OUTPUT",msg);

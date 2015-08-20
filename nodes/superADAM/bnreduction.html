@@ -1,18 +1,244 @@
 <script type="text/javascript">
+    var singleComment = 1;
+    var multiComment = 2;   
+
+	function stripJsonComments(str) {
+		var currentChar;
+		var nextChar;
+		var insideString = false;
+		var insideComment = false;
+		var ret = '';
+
+		for (var i = 0; i < str.length; i++) {
+			currentChar = str[i];
+			nextChar = str[i + 1];
+
+			if (!insideComment && currentChar === '"') {
+				var escaped = str[i - 1] === '\\' && str[i - 2] !== '\\';
+				if (!insideComment && !escaped && currentChar === '"') {
+					insideString = !insideString;
+				}
+			}
+
+			if (insideString) {
+				ret += currentChar;
+				continue;
+			}
+
+			if (!insideComment && currentChar + nextChar === '//') {
+				insideComment = singleComment;
+				i++;
+			} else if (insideComment === singleComment && currentChar + nextChar === '\r\n') {
+				insideComment = false;
+				i++;
+				ret += currentChar;
+				ret += nextChar;
+				continue;
+			} else if (insideComment === singleComment && currentChar === '\n') {
+				insideComment = false;
+			} else if (!insideComment && currentChar + nextChar === '/*') {
+				insideComment = multiComment;
+				i++;
+				continue;
+			} else if (insideComment === multiComment && currentChar + nextChar === '*/') {
+				insideComment = false;
+				i++;
+				continue;
+			}
+
+			if (insideComment) {
+				continue;
+			}
+
+			ret += currentChar;
+		}
+
+		return ret;
+	}
+    
+    var algo_params = {};
+    var default_params = {};
+    function updateParams(server, showConfirmation){
+        var jqxhr = $.post( server, algo_params)
+                .done(function(data,textStatus,jqXHR) {
+                    if(data.substring(0, 6) == "Cannot"){
+                        alert("There is no such parameters!");
+                        algo_params = default_params;
+                    } else {
+                        if(showConfirmation){
+                            alert("Parameters saved ..");
+                        }
+                    }
+                })
+                .fail(function() {
+                    alert("Un-expected error occured");
+                    algo_params = default_params;
+                }); 
+    }
+    
     RED.nodes.registerType('BNReduction',{
         category: 'AlgoPiper',
-        color: '#00FFFF',
+        color: '#00DD00',
         defaults: {
-            module: {value:""}
+            module: {value:""},
+            log: {value:""},
+            algomanager: {value: "http://localhost:8764"},
+            bnreductionimage: {value: "algorun/bnreduction"}
         },
         inputs:1,
-        outputs:1,
+        outputs: 1,
         icon: "serial.png",
-        label: function() {
-            return this.module||"BNReduction";
+        label: function(){
+            return this.module || "BNReduction";
         },
-        paletteLabel: function() {
-            return this.module||"BNReduction";
+        paletteLabel: function(){
+            return this.module || "BNReduction";
+        },
+        info: function() {
+            var bnreduction_endpoint = '';
+            jQuery.ajax({
+                url: this.algomanager + '/api/v1/status',
+                data: {node_id: this.id},
+                success: function(result) {
+                    if(result["endpoint"]){
+                        bnreduction_endpoint = result["endpoint"];
+                    }
+                  },
+                async: false
+            });
+            if(bnreduction_endpoint === 'not found'){
+                return 'info will be available after you click deploy ..';
+            }
+            if(bnreduction_endpoint !== ''){
+                var bnreduction_manifest = "unknown";
+                jQuery.ajax({
+                    url: bnreduction_endpoint + '/v1/manifest',
+                    success: function(result) {
+                        bnreduction_manifest = result["responseText"];
+                    },
+                    error: function(result) {
+                        bnreduction_manifest = result["responseText"];
+                    },
+                    async: false
+                });
+                if(bnreduction_manifest !== 'unknown'){
+                    var info_tab = '';
+                    bnreduction_manifest = JSON.parse(stripJsonComments(bnreduction_manifest));
+                    info_tab += '#' + bnreduction_manifest["algo_name"] + '\n';
+                    for(var i = 0;i <bnreduction_manifest["algo_authors"].length; i++) {
+                        if(i == 0) {
+                            info_tab += bnreduction_manifest["algo_authors"][i]["name"] + '\n';
+                        } else {
+                            info_tab += ', ' + bnreduction_manifest["algo_authors"][i]["name"] + '\n';
+                        }
+                    }
+                    info_tab += '___\n';
+                    info_tab += '# Summary\ntags: ';
+                    for(var i = 0;i<bnreduction_manifest["algo_keywords"].length; i++){
+                        if(i == 0) {
+                            info_tab += bnreduction_manifest["algo_keywords"][i] + '\n';
+                        } else {
+                            info_tab += ', ' + bnreduction_manifest["algo_keywords"][i] + '\n';
+                        }
+                    }
+                    info_tab += '\nalgo_summary: You can try this algorithm here: [http://bnreduction.algorun.org](http://bnreduction.algorun.org)\n';
+                    info_tab += '___\n';
+                    info_tab += '# Description\n' + bnreduction_manifest["algo_description"].replace('<br>', '\n') + '\n';
+                    info_tab += '\nmore information: ' + bnreduction_manifest["algo_website"] + '\n';
+                    info_tab += '___\n';
+                    info_tab += '# About AlgoRun\n';
+                    info_tab += 'This algorithm is provided to you by AlgoRun. AlgoRun aims at fixing computational science reproducibility by offering an easy way to publish and use algorithms. More information on [http://algorun.org](http://algorun.org)';
+                    return info_tab;   
+                }
+            }
+            return 'Cannot load info from node!';
+        },
+        oneditprepare: function() {
+            var node = this;
+            $('#wrapper').dialog({
+                autoOpen: false,
+                title: 'Parameter Configuration'
+            });
+            $("#params-button").on('click', function(){
+                $("#wrapper").dialog( "option", "width", 400 );
+                $('#wrapper').dialog('open');
+                var bnreduction_endpoint = '';
+                jQuery.ajax({
+                    url: node.algomanager + '/api/v1/status',
+                    data: {node_id: node.id},
+                    success: function(result) {
+                        if(result["endpoint"]){
+                            bnreduction_endpoint = result["endpoint"];
+                        }
+                    },
+                    async: false
+                });
+                if(bnreduction_endpoint === 'not found'){
+                    $('#wrapper').html("<p style='text-align: center;'>parameters not available!<br>deploy the node again ..</p>");
+                    return false;
+                }
+                if(bnreduction_endpoint !== ''){
+                    var bnreduction_manifest = "unknown";
+                    jQuery.ajax({
+                        url: bnreduction_endpoint + '/v1/manifest',
+                        success: function(result) {
+                            bnreduction_manifest = result["responseText"];
+                        },
+                        error: function(result) {
+                            bnreduction_manifest = result["responseText"];
+                        },
+                        async: false
+                    });
+                    if(bnreduction_manifest !== 'unknown'){
+                        bnreduction_manifest = JSON.parse(stripJsonComments(bnreduction_manifest));
+                        default_params = bnreduction_manifest["algo_parameters"];
+                        if(jQuery.isEmptyObject(algo_params)){
+                            algo_params = bnreduction_manifest["algo_parameters"];
+                            updateParams(bnreduction_endpoint + '/v1/config', false);
+                        }
+                        // render parameters
+                        var params_ui = "<div style='overflow-y: scroll; height: 205px;'><table style='width: 100%; background-color: #F2F2F2;'>";                
+                        for (var key in algo_params) {
+                            if (algo_params.hasOwnProperty(key)) {
+                                var key_id = node.id + '-' + key;
+                                var value_id = node.id + '-in-' + key;
+                                params_ui += "<tr><td style='width:50%; text-align: center;'><div id='" + key_id +"'>" + key + "</div></td><td style='text-align: center;'><input type='text' style='width:75px; text-align: center; margin-top: 7px;' value='" + algo_params[key]+ "' id='" + value_id +"'></td></tr>";
+                            }
+                        }
+                        params_ui += "</table></div><br>";
+                    }
+                } else {
+                    $('#wrapper').html("<p style='text-align: center;'>cannot connect to algomanager</p>");
+                    return false;
+                }
+                
+                // render buttons
+                params_ui += "<table style='width:100%;' id ='aaa'><tr>";
+                
+                params_ui += "<td style='width:50%; text-align: center;'><button id='defaults-button'style='width: 100%;'>reset defaults</button></td>";
+                
+                params_ui += "<td style='width:50%; text-align: center;'><button id='save-button' style='width: 100%;' >save</button></td>";
+                params_ui += "</tr></table>";
+                $('#wrapper').html(params_ui);
+                $('#save-button').on('click', function(){
+                    for (var key in algo_params) {
+                        if (algo_params.hasOwnProperty(key)) {
+                            var value_id = node.id + '-in-' + key;
+                            var new_value = document.getElementById(value_id).value;
+                            algo_params[key] = new_value;
+                        }
+                    }
+                    updateParams(bnreduction_endpoint + '/v1/config', true);
+                    $(this).closest('.ui-dialog-content').dialog('close'); 
+                });
+                
+                $('#defaults-button').on('click', function(){
+                    algo_params = default_params;
+                    updateParams(bnreduction_endpoint + '/v1/config', true);
+                    $(this).closest('.ui-dialog-content').dialog('close'); 
+                });
+                return false;
+            });
         }
     });
 </script>
@@ -22,8 +248,20 @@
         <label for="node-input-module"><i class="icon-tag"></i> Module</label>
         <input type="text" id="node-input-module" placeholder="Module Name">
     </div>
+    <div class="form-row">
+        <label for="node-input-log"><i class="icon-tag"></i> Debug</label>
+        <select id="node-input-log" style="width:73%">
+          <option value="Yes" data-i18n="BNReduction.Yes">Yes</option>
+          <option value="No" data-i18n="BNReduction.No">No</option>
+        </select>
+    </div>
+    <div class="form-row" style="text-align: center;">
+        <label for="params"><button type="button" id="params-button">Configure Parameters</button></label>
+    </div>
+    <div id="wrapper">
+    </div>
 </script>
 
 <script type="text/x-red" data-help-name="BNReduction">
-    <p>A node that calls REACT module on input and produce the result of the computation</p>
+    
 </script>
