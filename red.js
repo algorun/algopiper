@@ -49,8 +49,8 @@ nopt.invalidHandler = function(k,v,t) {
 var parsedArgs = nopt(knownOpts,shortHands,process.argv,2)
 
 if (parsedArgs.help) {
-    console.log("Node-RED v"+RED.version());
-    console.log("Usage: node-red [-v] [-?] [--settings settings.js] [--userDir DIR] [flows.json]");
+    console.log("AlgoPiper v"+RED.version());
+    console.log("Usage: AlgoPiper [-v] [-?] [--settings settings.js] [--userDir DIR] [flows.json]");
     console.log("");
     console.log("Options:");
     console.log("  -s, --settings FILE  use specified settings file");
@@ -154,7 +154,7 @@ try {
     RED.init(server,settings);
 } catch(err) {
     if (err.code == "not_built") {
-        console.log("Node-RED has not been built. See README.md for details");
+        console.log("AlgoPiper has not been built. See README.md for details");
     } else {
         console.log("Failed to start server:");
         if (err.stack) {
@@ -234,7 +234,7 @@ RED.start().then(function() {
             if (settings.httpAdminRoot === false) {
                 RED.log.info(log._("server.admin-ui-disabled"));
             }
-            process.title = 'node-red';
+            process.title = 'AlgoPiper';
             RED.log.info(log._("server.now-running", {listenpath:getListenPath()}));
         });
     } else {
