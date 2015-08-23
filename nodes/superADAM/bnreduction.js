@@ -88,6 +88,7 @@ module.exports = function(RED) {
                             });
                             
                             require('dns').lookup(require('os').hostname(), function (err, add, fam) {
+                                add = 'x.algorun.org';
                                 var file_path = 'http://' + add + ':1880/' + filename;
                                 sendDebug({id:node.id,name:"BNReductio LOG",topic:"computation result",msg:file_path,_path:msg._path});
                             });

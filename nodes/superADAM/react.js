@@ -43,7 +43,7 @@ module.exports = function(RED) {
                                 if(deploy_result["status"] === "success") {
                                     ready = true;
                                     react_server = deploy_result["endpoint"];
-                                    sleep.sleep(1);
+                                    sleep.sleep(2);
                                     test_run(react_server);
                                 } else {
                                     node.status({fill:"red",shape:"dot",text:body});
@@ -106,6 +106,7 @@ module.exports = function(RED) {
                             });
                             
                             require('dns').lookup(require('os').hostname(), function (err, add, fam) {
+                                add = 'x.algorun.org';
                                 var file_path = 'http://' + add + ':1880/' + filename;
                                 sendDebug({id:node.id,name:"REACT LOG",topic:"computation result",msg:file_path,_path:msg._path});
                             });

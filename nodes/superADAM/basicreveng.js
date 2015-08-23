@@ -10,7 +10,7 @@ module.exports = function(RED) {
         var ready = false;
         var basicreveng_server = "";
         
-        config.algomanager = "http://localhost:8764";
+        config.algomanager = "http://algomanager.algorun.org";
         config.basicrevengimage = "ahosny/basicreveng";
         node.status({fill:"yellow", shape:"dot", text:"connecting .."});
         // check algomanager status
@@ -89,6 +89,7 @@ module.exports = function(RED) {
                             });
                             
                             require('dns').lookup(require('os').hostname(), function (err, add, fam) {
+                                add = 'x.algorun.org';
                                 var file_path = 'http://' + add + ':1880/' + filename;
                                 sendDebug({id:node.id,name:"BasicRevEng LOG",topic:"computation result",msg:file_path,_path:msg._path});
                             });
