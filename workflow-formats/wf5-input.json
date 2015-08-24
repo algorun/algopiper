@@ -1,0 +1,41 @@
+{
+  "task": {
+      "input": [
+          {
+            "description": "boolean data",
+            "fieldCardinality": 2,
+            "numberVariables": 5,
+            "timeSeriesData": [
+                {
+                  "index": [],
+                  "matrix": [
+                      [1,0,0,0,0],
+                      [1,1,1,1,1],
+                      [0,1,1,1,1],
+                      [0,1,0,1,1],
+                      [0,1,1,1,0]
+                    ],
+                  "name": "wildtype experiment 1"
+                },
+                {
+                  "index": [],
+                  "matrix": [
+                      [1,1,0,0,1],
+                      [1,1,1,1,0],
+                      [0,0,0,0,0],
+                      [0,1,0,1,0]
+                    ],
+                  "name": "wildtype experiment 2"
+                }
+              ],
+            "type": "timeSeries"
+          }
+        ],
+      "method": {
+          "arguments": [],
+          "description": "example time series",
+          "id": "basicRevEng",
+          "type": "reverseEngineering"
+        }
+    }
+}
