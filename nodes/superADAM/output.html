@@ -157,6 +157,9 @@
 
                                     '</span>';
                 }
+                if (payload.lastIndexOf('http', 0) === 0){
+                    payload = "<a href=" + payload+ " target='_blank'>" + payload + "</a>";
+                }
                 msg.innerHTML += '<span class="OUTPUT-message-payload">'+ payload+ '</span>';
                 var atBottom = (sbc.scrollHeight-messages.offsetHeight-sbc.scrollTop) < 5;
                 messageCount++;
