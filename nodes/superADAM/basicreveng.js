@@ -10,7 +10,7 @@ module.exports = function(RED) {
         var ready = false;
         var basicreveng_server = "";
         
-        config.algomanager = "http://manager.algorun.org";
+        config.algomanager = "http://localhost:8764";
         config.basicrevengimage = "ahosny/basicreveng";
         node.status({fill:"yellow", shape:"dot", text:"connecting .."});
         // check algomanager status

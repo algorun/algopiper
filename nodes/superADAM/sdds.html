@@ -78,12 +78,13 @@
     
     RED.nodes.registerType('SDDS',{
         category: 'AlgoPiper',
-        color: '#0080FF',
+        color: '#00DD00',
         defaults: {
             module: {value:""},
             log: {value:""},
-            algomanager: {value: "http://manager.algorun.org"},
-            sddsimage: {value: "algorun/sdds"}
+            algomanager: {value: "http://localhost:8764"},
+            docker_image: {value: "algorun/sdds"},
+            log_file_path: {value: "http://localhost:1880"}
         },
         inputs:1,
         outputs: 1,
@@ -95,56 +96,56 @@
             return this.module || "SDDS";
         },
         info: function() {
-            var sdds_endpoint = '';
+            var docker_server = '';
             jQuery.ajax({
                 url: this.algomanager + '/api/v1/status',
                 data: {node_id: this.id},
                 success: function(result) {
                     if(result["endpoint"]){
-                        sdds_endpoint = result["endpoint"];
+                        docker_server = result["endpoint"];
                     }
                   },
                 async: false
             });
-            if(sdds_endpoint === 'not found'){
+            if(docker_server === 'not found'){
                 return 'info will be available after you click deploy ..';
             }
-            if(sdds_endpoint !== ''){
-                var sdds_manifest = "unknown";
+            if(docker_server !== ''){
+                var module_manifest = "unknown";
                 jQuery.ajax({
-                    url: sdds_endpoint + '/v1/manifest',
+                    url: docker_server + '/v1/manifest',
                     success: function(result) {
-                        sdds_manifest = result["responseText"];
+                        module_manifest = result["responseText"];
                     },
                     error: function(result) {
-                        sdds_manifest = result["responseText"];
+                        module_manifest = result["responseText"];
                     },
                     async: false
                 });
-                if(sdds_manifest !== 'unknown'){
+                if(module_manifest !== 'unknown'){
                     var info_tab = '';
-                    sdds_manifest = JSON.parse(stripJsonComments(sdds_manifest));
-                    info_tab += '#' + sdds_manifest["algo_name"] + '\n';
-                    for(var i = 0;i <sdds_manifest["algo_authors"].length; i++) {
+                    module_manifest = JSON.parse(stripJsonComments(module_manifest));
+                    info_tab += '#' + module_manifest["algo_name"] + '\n';
+                    for(var i = 0;i <module_manifest["algo_authors"].length; i++) {
                         if(i == 0) {
-                            info_tab += sdds_manifest["algo_authors"][i]["name"] + '\n';
+                            info_tab += module_manifest["algo_authors"][i]["name"] + '\n';
                         } else {
-                            info_tab += ', ' + sdds_manifest["algo_authors"][i]["name"] + '\n';
+                            info_tab += ', ' + module_manifest["algo_authors"][i]["name"] + '\n';
                         }
                     }
                     info_tab += '___\n';
                     info_tab += '# Summary\ntags: ';
-                    for(var i = 0;i<sdds_manifest["algo_keywords"].length; i++){
+                    for(var i = 0;i<module_manifest["algo_keywords"].length; i++){
                         if(i == 0) {
-                            info_tab += sdds_manifest["algo_keywords"][i] + '\n';
+                            info_tab += module_manifest["algo_keywords"][i] + '\n';
                         } else {
-                            info_tab += ', ' + sdds_manifest["algo_keywords"][i] + '\n';
+                            info_tab += ', ' + module_manifest["algo_keywords"][i] + '\n';
                         }
                     }
                     info_tab += '\nalgo_summary: You can try this algorithm here: [http://sdds.algorun.org](http://sdds.algorun.org)\n';
                     info_tab += '___\n';
-                    info_tab += '# Description\n' + sdds_manifest["algo_description"].replace('<br>', '\n') + '\n';
-                    info_tab += '\nmore information: ' + sdds_manifest["algo_website"] + '\n';
+                    info_tab += '# Description\n' + module_manifest["algo_description"].replace('<br>', '\n') + '\n';
+                    info_tab += '\nmore information: ' + module_manifest["algo_website"] + '\n';
                     info_tab += '___\n';
                     info_tab += '# About AlgoRun\n';
                     info_tab += 'This algorithm is provided to you by AlgoRun. AlgoRun aims at fixing computational science reproducibility by offering an easy way to publish and use algorithms. More information on [http://algorun.org](http://algorun.org)';
@@ -162,39 +163,39 @@
             $("#params-button").on('click', function(){
                 $("#wrapper").dialog( "option", "width", 400 );
                 $('#wrapper').dialog('open');
-                var sdds_endpoint = '';
+                var docker_server = '';
                 jQuery.ajax({
                     url: node.algomanager + '/api/v1/status',
                     data: {node_id: node.id},
                     success: function(result) {
                         if(result["endpoint"]){
-                            sdds_endpoint = result["endpoint"];
+                            docker_server = result["endpoint"];
                         }
                     },
                     async: false
                 });
-                if(sdds_endpoint === 'not found'){
+                if(docker_server === 'not found'){
                     $('#wrapper').html("<p style='text-align: center;'>parameters not available!<br>deploy the node again ..</p>");
                     return false;
                 }
-                if(sdds_endpoint !== ''){
-                    var sdds_manifest = "unknown";
+                if(docker_server !== ''){
+                    var module_manifest = "unknown";
                     jQuery.ajax({
-                        url: sdds_endpoint + '/v1/manifest',
+                        url: docker_server + '/v1/manifest',
                         success: function(result) {
-                            sdds_manifest = result["responseText"];
+                            module_manifest = result["responseText"];
                         },
                         error: function(result) {
-                            sdds_manifest = result["responseText"];
+                            module_manifest = result["responseText"];
                         },
                         async: false
                     });
-                    if(sdds_manifest !== 'unknown'){
-                        sdds_manifest = JSON.parse(stripJsonComments(sdds_manifest));
-                        default_params = sdds_manifest["algo_parameters"];
+                    if(module_manifest !== 'unknown'){
+                        module_manifest = JSON.parse(stripJsonComments(module_manifest));
+                        default_params = module_manifest["algo_parameters"];
                         if(jQuery.isEmptyObject(algo_params)){
-                            algo_params = sdds_manifest["algo_parameters"];
-                            updateParams(sdds_endpoint + '/v1/config', false);
+                            algo_params = module_manifest["algo_parameters"];
+                            updateParams(docker_server + '/v1/config', false);
                         }
                         // render parameters
                         var params_ui = "<div style='overflow-y: scroll; height: 205px;'><table style='width: 100%; background-color: #F2F2F2;'>";                
@@ -228,13 +229,13 @@
                             algo_params[key] = new_value;
                         }
                     }
-                    updateParams(sdds_endpoint + '/v1/config', true);
+                    updateParams(docker_server + '/v1/config', true);
                     $(this).closest('.ui-dialog-content').dialog('close'); 
                 });
                 
                 $('#defaults-button').on('click', function(){
                     algo_params = default_params;
-                    updateParams(sdds_endpoint + '/v1/config', true);
+                    updateParams(docker_server + '/v1/config', true);
                     $(this).closest('.ui-dialog-content').dialog('close'); 
                 });
                 return false;

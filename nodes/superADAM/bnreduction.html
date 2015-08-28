@@ -82,8 +82,9 @@
         defaults: {
             module: {value:""},
             log: {value:""},
-            algomanager: {value: "http://manager.algorun.org"},
-            bnreductionimage: {value: "algorun/bnreduction"}
+            algomanager: {value: "http://localhost:8764"},
+            docker_image: {value: "algorun/bnreduction"},
+            log_file_path: {value: "http://localhost:1880"}
         },
         inputs:1,
         outputs: 1,
@@ -95,56 +96,56 @@
             return this.module || "BNReduction";
         },
         info: function() {
-            var bnreduction_endpoint = '';
+            var docker_server = '';
             jQuery.ajax({
                 url: this.algomanager + '/api/v1/status',
                 data: {node_id: this.id},
                 success: function(result) {
                     if(result["endpoint"]){
-                        bnreduction_endpoint = result["endpoint"];
+                        docker_server = result["endpoint"];
                     }
                   },
                 async: false
             });
-            if(bnreduction_endpoint === 'not found'){
+            if(docker_server === 'not found'){
                 return 'info will be available after you click deploy ..';
             }
-            if(bnreduction_endpoint !== ''){
-                var bnreduction_manifest = "unknown";
+            if(docker_server !== ''){
+                var module_manifest = "unknown";
                 jQuery.ajax({
-                    url: bnreduction_endpoint + '/v1/manifest',
+                    url: docker_server + '/v1/manifest',
                     success: function(result) {
-                        bnreduction_manifest = result["responseText"];
+                        module_manifest = result["responseText"];
                     },
                     error: function(result) {
-                        bnreduction_manifest = result["responseText"];
+                        module_manifest = result["responseText"];
                     },
                     async: false
                 });
-                if(bnreduction_manifest !== 'unknown'){
+                if(module_manifest !== 'unknown'){
                     var info_tab = '';
-                    bnreduction_manifest = JSON.parse(stripJsonComments(bnreduction_manifest));
-                    info_tab += '#' + bnreduction_manifest["algo_name"] + '\n';
-                    for(var i = 0;i <bnreduction_manifest["algo_authors"].length; i++) {
+                    module_manifest = JSON.parse(stripJsonComments(module_manifest));
+                    info_tab += '#' + module_manifest["algo_name"] + '\n';
+                    for(var i = 0;i <module_manifest["algo_authors"].length; i++) {
                         if(i == 0) {
-                            info_tab += bnreduction_manifest["algo_authors"][i]["name"] + '\n';
+                            info_tab += module_manifest["algo_authors"][i]["name"] + '\n';
                         } else {
-                            info_tab += ', ' + bnreduction_manifest["algo_authors"][i]["name"] + '\n';
+                            info_tab += ', ' + module_manifest["algo_authors"][i]["name"] + '\n';
                         }
                     }
                     info_tab += '___\n';
                     info_tab += '# Summary\ntags: ';
-                    for(var i = 0;i<bnreduction_manifest["algo_keywords"].length; i++){
+                    for(var i = 0;i<module_manifest["algo_keywords"].length; i++){
                         if(i == 0) {
-                            info_tab += bnreduction_manifest["algo_keywords"][i] + '\n';
+                            info_tab += module_manifest["algo_keywords"][i] + '\n';
                         } else {
-                            info_tab += ', ' + bnreduction_manifest["algo_keywords"][i] + '\n';
+                            info_tab += ', ' + module_manifest["algo_keywords"][i] + '\n';
                         }
                     }
                     info_tab += '\nalgo_summary: You can try this algorithm here: [http://bnreduction.algorun.org](http://bnreduction.algorun.org)\n';
                     info_tab += '___\n';
-                    info_tab += '# Description\n' + bnreduction_manifest["algo_description"].replace('<br>', '\n') + '\n';
-                    info_tab += '\nmore information: ' + bnreduction_manifest["algo_website"] + '\n';
+                    info_tab += '# Description\n' + module_manifest["algo_description"].replace('<br>', '\n') + '\n';
+                    info_tab += '\nmore information: ' + module_manifest["algo_website"] + '\n';
                     info_tab += '___\n';
                     info_tab += '# About AlgoRun\n';
                     info_tab += 'This algorithm is provided to you by AlgoRun. AlgoRun aims at fixing computational science reproducibility by offering an easy way to publish and use algorithms. More information on [http://algorun.org](http://algorun.org)';
@@ -162,39 +163,39 @@
             $("#params-button").on('click', function(){
                 $("#wrapper").dialog( "option", "width", 400 );
                 $('#wrapper').dialog('open');
-                var bnreduction_endpoint = '';
+                var docker_server = '';
                 jQuery.ajax({
                     url: node.algomanager + '/api/v1/status',
                     data: {node_id: node.id},
                     success: function(result) {
                         if(result["endpoint"]){
-                            bnreduction_endpoint = result["endpoint"];
+                            docker_server = result["endpoint"];
                         }
                     },
                     async: false
                 });
-                if(bnreduction_endpoint === 'not found'){
+                if(docker_server === 'not found'){
                     $('#wrapper').html("<p style='text-align: center;'>parameters not available!<br>deploy the node again ..</p>");
                     return false;
                 }
-                if(bnreduction_endpoint !== ''){
-                    var bnreduction_manifest = "unknown";
+                if(docker_server !== ''){
+                    var module_manifest = "unknown";
                     jQuery.ajax({
-                        url: bnreduction_endpoint + '/v1/manifest',
+                        url: docker_server + '/v1/manifest',
                         success: function(result) {
-                            bnreduction_manifest = result["responseText"];
+                            module_manifest = result["responseText"];
                         },
                         error: function(result) {
-                            bnreduction_manifest = result["responseText"];
+                            module_manifest = result["responseText"];
                         },
                         async: false
                     });
-                    if(bnreduction_manifest !== 'unknown'){
-                        bnreduction_manifest = JSON.parse(stripJsonComments(bnreduction_manifest));
-                        default_params = bnreduction_manifest["algo_parameters"];
+                    if(module_manifest !== 'unknown'){
+                        module_manifest = JSON.parse(stripJsonComments(module_manifest));
+                        default_params = module_manifest["algo_parameters"];
                         if(jQuery.isEmptyObject(algo_params)){
-                            algo_params = bnreduction_manifest["algo_parameters"];
-                            updateParams(bnreduction_endpoint + '/v1/config', false);
+                            algo_params = module_manifest["algo_parameters"];
+                            updateParams(docker_server + '/v1/config', false);
                         }
                         // render parameters
                         var params_ui = "<div style='overflow-y: scroll; height: 205px;'><table style='width: 100%; background-color: #F2F2F2;'>";                
@@ -228,13 +229,13 @@
                             algo_params[key] = new_value;
                         }
                     }
-                    updateParams(bnreduction_endpoint + '/v1/config', true);
+                    updateParams(docker_server + '/v1/config', true);
                     $(this).closest('.ui-dialog-content').dialog('close'); 
                 });
                 
                 $('#defaults-button').on('click', function(){
                     algo_params = default_params;
-                    updateParams(bnreduction_endpoint + '/v1/config', true);
+                    updateParams(docker_server + '/v1/config', true);
                     $(this).closest('.ui-dialog-content').dialog('close'); 
                 });
                 return false;

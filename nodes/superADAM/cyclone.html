@@ -78,12 +78,13 @@
     
     RED.nodes.registerType('Cyclone',{
         category: 'AlgoPiper',
-        color: '#008000',
+        color: '#00DD00',
         defaults: {
             module: {value:""},
             log: {value:""},
-            algomanager: {value: "http://manager.algorun.org"},
-            cycloneimage: {value: "algorun/cyclone"}
+            algomanager: {value: "http://localhost:8764"},
+            docker_image: {value: "algorun/cyclone"},
+            log_file_path: {value: "http://localhost:1880"}
         },
         inputs:1,
         outputs: 1,
@@ -95,56 +96,56 @@
             return this.module || "Cyclone";
         },
         info: function() {
-            var cyclone_endpoint = '';
+            var docker_server = '';
             jQuery.ajax({
                 url: this.algomanager + '/api/v1/status',
                 data: {node_id: this.id},
                 success: function(result) {
                     if(result["endpoint"]){
-                        cyclone_endpoint = result["endpoint"];
+                        docker_server = result["endpoint"];
                     }
                   },
                 async: false
             });
-            if(cyclone_endpoint === 'not found'){
+            if(docker_server === 'not found'){
                 return 'info will be available after you click deploy ..';
             }
-            if(cyclone_endpoint !== ''){
-                var cyclone_manifest = "unknown";
+            if(docker_server !== ''){
+                var module_manifest = "unknown";
                 jQuery.ajax({
-                    url: cyclone_endpoint + '/v1/manifest',
+                    url: docker_server + '/v1/manifest',
                     success: function(result) {
-                        cyclone_manifest = result["responseText"];
+                        module_manifest = result["responseText"];
                     },
                     error: function(result) {
-                        cyclone_manifest = result["responseText"];
+                        module_manifest = result["responseText"];
                     },
                     async: false
                 });
-                if(cyclone_manifest !== 'unknown'){
+                if(module_manifest !== 'unknown'){
                     var info_tab = '';
-                    cyclone_manifest = JSON.parse(stripJsonComments(cyclone_manifest));
-                    info_tab += '#' + cyclone_manifest["algo_name"] + '\n';
-                    for(var i = 0;i <cyclone_manifest["algo_authors"].length; i++) {
+                    module_manifest = JSON.parse(stripJsonComments(module_manifest));
+                    info_tab += '#' + module_manifest["algo_name"] + '\n';
+                    for(var i = 0;i <module_manifest["algo_authors"].length; i++) {
                         if(i == 0) {
-                            info_tab += cyclone_manifest["algo_authors"][i]["name"] + '\n';
+                            info_tab += module_manifest["algo_authors"][i]["name"] + '\n';
                         } else {
-                            info_tab += ', ' + cyclone_manifest["algo_authors"][i]["name"] + '\n';
+                            info_tab += ', ' + module_manifest["algo_authors"][i]["name"] + '\n';
                         }
                     }
                     info_tab += '___\n';
                     info_tab += '# Summary\ntags: ';
-                    for(var i = 0;i<cyclone_manifest["algo_keywords"].length; i++){
+                    for(var i = 0;i<module_manifest["algo_keywords"].length; i++){
                         if(i == 0) {
-                            info_tab += cyclone_manifest["algo_keywords"][i] + '\n';
+                            info_tab += module_manifest["algo_keywords"][i] + '\n';
                         } else {
-                            info_tab += ', ' + cyclone_manifest["algo_keywords"][i] + '\n';
+                            info_tab += ', ' + module_manifest["algo_keywords"][i] + '\n';
                         }
                     }
                     info_tab += '\nalgo_summary: You can try this algorithm here: [http://cyclone.algorun.org](http://cyclone.algorun.org)\n';
                     info_tab += '___\n';
-                    info_tab += '# Description\n' + cyclone_manifest["algo_description"].replace('<br>', '\n') + '\n';
-                    info_tab += '\nmore information: ' + cyclone_manifest["algo_website"] + '\n';
+                    info_tab += '# Description\n' + module_manifest["algo_description"].replace('<br>', '\n') + '\n';
+                    info_tab += '\nmore information: ' + module_manifest["algo_website"] + '\n';
                     info_tab += '___\n';
                     info_tab += '# About AlgoRun\n';
                     info_tab += 'This algorithm is provided to you by AlgoRun. AlgoRun aims at fixing computational science reproducibility by offering an easy way to publish and use algorithms. More information on [http://algorun.org](http://algorun.org)';
@@ -162,39 +163,39 @@
             $("#params-button").on('click', function(){
                 $("#wrapper").dialog( "option", "width", 400 );
                 $('#wrapper').dialog('open');
-                var cyclone_endpoint = '';
+                var docker_server = '';
                 jQuery.ajax({
                     url: node.algomanager + '/api/v1/status',
                     data: {node_id: node.id},
                     success: function(result) {
                         if(result["endpoint"]){
-                            cyclone_endpoint = result["endpoint"];
+                            docker_server = result["endpoint"];
                         }
                     },
                     async: false
                 });
-                if(cyclone_endpoint === 'not found'){
+                if(docker_server === 'not found'){
                     $('#wrapper').html("<p style='text-align: center;'>parameters not available!<br>deploy the node again ..</p>");
                     return false;
                 }
-                if(cyclone_endpoint !== ''){
-                    var cyclone_manifest = "unknown";
+                if(docker_server !== ''){
+                    var module_manifest = "unknown";
                     jQuery.ajax({
-                        url: cyclone_endpoint + '/v1/manifest',
+                        url: docker_server + '/v1/manifest',
                         success: function(result) {
-                            cyclone_manifest = result["responseText"];
+                            module_manifest = result["responseText"];
                         },
                         error: function(result) {
-                            cyclone_manifest = result["responseText"];
+                            module_manifest = result["responseText"];
                         },
                         async: false
                     });
-                    if(cyclone_manifest !== 'unknown'){
-                        cyclone_manifest = JSON.parse(stripJsonComments(cyclone_manifest));
-                        default_params = cyclone_manifest["algo_parameters"];
+                    if(module_manifest !== 'unknown'){
+                        module_manifest = JSON.parse(stripJsonComments(module_manifest));
+                        default_params = module_manifest["algo_parameters"];
                         if(jQuery.isEmptyObject(algo_params)){
-                            algo_params = cyclone_manifest["algo_parameters"];
-                            updateParams(cyclone_endpoint + '/v1/config', false);
+                            algo_params = module_manifest["algo_parameters"];
+                            updateParams(docker_server + '/v1/config', false);
                         }
                         // render parameters
                         var params_ui = "<div style='overflow-y: scroll; height: 205px;'><table style='width: 100%; background-color: #F2F2F2;'>";                
@@ -228,13 +229,13 @@
                             algo_params[key] = new_value;
                         }
                     }
-                    updateParams(cyclone_endpoint + '/v1/config', true);
+                    updateParams(docker_server + '/v1/config', true);
                     $(this).closest('.ui-dialog-content').dialog('close'); 
                 });
                 
                 $('#defaults-button').on('click', function(){
                     algo_params = default_params;
-                    updateParams(cyclone_endpoint + '/v1/config', true);
+                    updateParams(docker_server + '/v1/config', true);
                     $(this).closest('.ui-dialog-content').dialog('close'); 
                 });
                 return false;
