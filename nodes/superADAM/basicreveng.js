@@ -3,6 +3,7 @@ module.exports = function(RED) {
     var fs = require("fs-extra");
     var os = require("os");
     var request = require('request');
+    var sleep = require('sleep');
     
     function sendDebug(msg) {
         RED.comms.publish("OUTPUT", msg);
@@ -69,6 +70,7 @@ module.exports = function(RED) {
                                     node.status({fill:"green",shape:"dot",text:"ready .."});
                                     docker_server = deploy_result["endpoint"];
                                     if(input_data && input_data !== ''){
+                                        sleep.sleep(2);
                                         algo_run(input_data);
                                     }
                                 } else {
