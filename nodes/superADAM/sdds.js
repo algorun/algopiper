@@ -124,7 +124,7 @@ module.exports = function(RED) {
                     } else {
                         module_msg.payload = error;
                         node.send(module_msg);
-                        node.status({fill:"red",shape:"dot",text:error});
+                        node.status({fill:"red",shape:"dot",text:JSON.stringify(error)});
                     }
                 });
     }
