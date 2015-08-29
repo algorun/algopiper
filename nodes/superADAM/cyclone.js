@@ -83,7 +83,7 @@ module.exports = function(RED) {
                         });
                     }
                     node.send(module_msg);
-                    node.status({fill:"blue",shape:"dot",text:"done .."});
+                    node.status({fill:"green",shape:"dot",text:"ready .."});
                     } else {
                         module_msg.payload = error;
                         node.send(module_msg);

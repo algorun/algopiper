@@ -1,12 +1,14 @@
 <script type="text/javascript">    
+    
     RED.nodes.registerType('BasicRevEng',{
         category: 'AlgoPiper',
-        color: '#0080FF',
+        color: '#00BFFF',
         defaults: {
             module: {value:""},
             log: {value:""},
-            algomanager: {value: "http://localhost:8764"},
-            basicrevengimage: {value: "ahosny/basicreveng"}
+            algomanager: {value: "http://manager.algorun.org"},
+            docker_image: {value: "ahosny/basicreveng"},
+            log_file_path: {value: "http://algopiper.algorun.org"}
         },
         inputs:1,
         outputs: 1,
@@ -31,6 +33,11 @@
           <option value="Yes" data-i18n="BasicRevEng.Yes">Yes</option>
           <option value="No" data-i18n="BasicRevEng.No">No</option>
         </select>
+    </div>
+    <div class="form-row" style="text-align: center;">
+        <label for="params"><button type="button" id="params-button">Configure Parameters</button></label>
+    </div>
+    <div id="wrapper">
     </div>
 </script>
 

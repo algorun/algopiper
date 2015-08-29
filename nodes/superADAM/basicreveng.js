@@ -2,39 +2,45 @@ module.exports = function(RED) {
     "use strict";
     var fs = require("fs-extra");
     var os = require("os");
+    var request = require('request');
+    var node;
+    var algo_manager;
+    var docker_image;
+    var docker_server = "";
+    var filename;
+    var log_file_path;
+    var module_msg;
+    var log;
     
-    function BascicrevengNode(config) {
-        RED.nodes.createNode(this,config);
-        var node = this;
-        var request = require('request');
-        var ready = false;
-        var basicreveng_server = "";
-        
-        config.algomanager = "http://localhost:8764";
-        config.basicrevengimage = "ahosny/basicreveng";
-        node.status({fill:"yellow", shape:"dot", text:"connecting .."});
+    function sendDebug(msg) {
+        RED.comms.publish("OUTPUT", msg);
+    }
+    
+    function deploy_container(input_data){
         // check algomanager status
-        request(config.algomanager + '/api/v1/status', function (error, response, body) {
+        request(algo_manager + '/api/v1/status', function (error, response, body) {
             if (!error && response.statusCode == 200) {
-                node.status({fill:"yellow", shape:"dot", text:"initializing .."});
+                node.status({fill:"yellow", shape:"dot", text:"deploying .."});
                 
-                // now algomanager is running. deploy basicreveng
-                request.post(config.algomanager + '/api/v1/deploy',
-                       { form: { image: config.basicrevengimage, node_id: node.id } },
+                // now algomanager is running. deploy docker image
+                request.post(algo_manager + '/api/v1/deploy',
+                       { form: { image: docker_image, node_id: node.id } },
                        function (error, response, body) {
                             if (!error && response.statusCode == 200) {
                                 var deploy_result = JSON.parse(body);
                                 if(deploy_result["status"] === "success") {
                                     node.status({fill:"green",shape:"dot",text:"ready .."});
-                                    ready = true;
-                                    basicreveng_server = deploy_result["endpoint"];
+                                    docker_server = deploy_result["endpoint"];
+                                    if(input_data && input_data !== ''){
+                                        algo_run(input_data);
+                                    }
                                 } else {
                                     node.status({fill:"red",shape:"dot",text:body});
-                                    ready = false;
-                                    node.status({fill:"red",shape:"dot",text:deploy_result["error_message"]});
+                                    node.status({fill:"red",shape:"dot",text:JSON.stringify(deploy_result["error_message"])});
                                 }
                             } else {
-                                node.status({fill:"red",shape:"dot",text:error});
+                                console.error(error);
+                                node.status({fill:"red",shape:"dot",text:'algomanager server error'});
                             }
                 });
             } else {
@@ -42,15 +48,66 @@ module.exports = function(RED) {
             }
         });
         
+    }
+    function algo_run(input_data){
+        node.status({fill:"blue",shape:"ring",text:"computing .."});
+        request.post(
+            docker_server + '/do/run',
+            { form: { input: input_data } },
+            function (error, response, body) {
+                if (!error && response.statusCode == 200) {
+                    module_msg.payload = body;
+                    
+                    if(log !== "No"){
+                        // write data to a file
+                        fs.writeFile(filename, body, "binary", function (err) {
+                            if (err) {
+                                if ((err.code === "ENOENT")) {
+                                    fs.ensureFile(filename, function (err) {
+                                        if (err) { node.error(RED._("file.errors.createfail",{error:err.toString()}),module_msg); }
+                                        else {
+                                            fs.writeFile(filename, body, "binary", function (err) {
+                                                if (err) { node.error(RED._("file.errors.writefail",{error:err.toString()}),module_msg); }
+                                            });
+                                        }
+                                    });
+                                }
+                                else { node.error(RED._("file.errors.writefail",{error:err.toString()}),module_msg); }
+                            }
+                            else if (RED.settings.verbose) { node.log(RED._("file.status.wrotefile",{file:filename})); }
+                        });
+                        
+                        require('dns').lookup(require('os').hostname(), function (err, add, fam) {
+                            var file_path = log_file_path + '/' + filename;
+                            sendDebug({id:node.id,name:"BasicRevEng LOG",topic:"computation result",msg:file_path,_path:module_msg._path});
+                        });
+                    }
+                    node.send(module_msg);
+                    node.status({fill:"green",shape:"dot",text:"ready .."});
+                    } else {
+                        module_msg.payload = error;
+                        node.send(module_msg);
+                        node.status({fill:"red",shape:"dot",text:error});
+                    }
+                });
+    }
+    
+    function ModuleNode(config) {
+        RED.nodes.createNode(this, config);
+        node = this;
+        algo_manager = config.algomanager;
+        docker_image = config.docker_image;
+        log_file_path = config.log_file_path;
+        log = config.log;
+        
+        filename = 'workflow-log/' + node.id + '.json';
+        
+        node.status({fill:"yellow", shape:"dot", text:"connecting .."});
+        deploy_container();
+        
         
         this.on('input', function(msg) {
-            if(!ready) {
-                msg.payload = 'node ' + this.id + ' is not ready';
-                node.send(msg);
-                node.status({fill:"red", shape:"dot", text:"hit deploy again!"});
-                return;
-            }
-            var filename = 'workflow-log/' + this.id + '.json';
+            module_msg = msg;
             var input_data = '';
             try{
                 var json = JSON.parse(msg.payload);
@@ -61,53 +118,17 @@ module.exports = function(RED) {
                 node.status({fill:"red",shape:"dot",text:"error parsing input.."});
                 return;
             }
-            this.status({fill:"blue",shape:"ring",text:"computing .."});
-            request.post(
-                basicreveng_server + '/do/run',
-                { form: { input: input_data } },
-                function (error, response, body) {
-                    if (!error && response.statusCode == 200) {
-                        msg.payload = body;
-                        
-                        if(config.log !== "No"){
-                            // write data to a file
-                            fs.writeFile(filename, body, "binary", function (err) {
-                                if (err) {
-                                    if ((err.code === "ENOENT")) {
-                                        fs.ensureFile(filename, function (err) {
-                                            if (err) { node.error(RED._("file.errors.createfail",{error:err.toString()}),msg); }
-                                            else {
-                                                fs.writeFile(filename, body, "binary", function (err) {
-                                                    if (err) { node.error(RED._("file.errors.writefail",{error:err.toString()}),msg); }
-                                                });
-                                            }
-                                        });
-                                    }
-                                    else { node.error(RED._("file.errors.writefail",{error:err.toString()}),msg); }
-                                }
-                                else if (RED.settings.verbose) { node.log(RED._("file.status.wrotefile",{file:filename})); }
-                            });
-                            
-                            require('dns').lookup(require('os').hostname(), function (err, add, fam) {
-                                add = 'algopiper.algorun.org';
-                                var file_path = 'http://' + add + '/' + filename;
-                                sendDebug({id:node.id,name:"BasicRevEng LOG",topic:"computation result",msg:file_path,_path:msg._path});
-                            });
-                        }
-                        node.send(msg);
-                        node.status({fill:"blue",shape:"dot",text:"done .."});
-                    } else {
-                        msg.payload = error;
-                        node.send(msg);
-                        node.status({fill:"red",shape:"dot",text:error});
-                    }
-                }
-            );
+            request.post(docker_server + '/do/run',
+                       function(error, response, body){
+                            if(!error && response.statusCode == 500) {
+                                // backend node is running is running
+                                algo_run(input_data);
+                            } else {
+                                // backend node needs to be deployed again
+                                deploy_container(input_data);
+                            }
+            });
         });
     }
-    RED.nodes.registerType('BasicRevEng', BascicrevengNode);
-    
-    function sendDebug(msg) {
-        RED.comms.publish("OUTPUT",msg);
-    }
+    RED.nodes.registerType('BasicRevEng', ModuleNode);
 }
