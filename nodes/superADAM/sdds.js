@@ -56,7 +56,7 @@ module.exports = function(RED) {
         });
         function deploy_container(input_data){
         // check algomanager status
-        request(algo_manager + '/api/v1/status', function (error, response, body) {
+        request(algo_manager, function (error, response, body) {
             if (!error && response.statusCode == 200) {
                 node.status({fill:"yellow", shape:"dot", text:"deploying .."});
                 

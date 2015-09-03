@@ -98,8 +98,8 @@
         info: function() {
             var docker_server = '';
             jQuery.ajax({
-                url: this.algomanager + '/api/v1/status',
-                data: {node_id: this.id},
+                url: this.algomanager + '/api/v1/deploy',
+                data: {image: this.docker_image, node_id: this.id},
                 success: function(result) {
                     if(result["endpoint"]){
                         docker_server = result["endpoint"];
@@ -165,8 +165,8 @@
                 $('#wrapper').dialog('open');
                 var docker_server = '';
                 jQuery.ajax({
-                    url: node.algomanager + '/api/v1/status',
-                    data: {node_id: node.id},
+                    url: node.algomanager + '/api/v1/deploy',
+                    data: {image: node.docker_image, node_id: node.id},
                     success: function(result) {
                         if(result["endpoint"]){
                             docker_server = result["endpoint"];
