@@ -58,6 +58,7 @@
     
     var algo_params = {};
     var default_params = {};
+    
     function updateParams(server, showConfirmation){
         var jqxhr = $.post( server, algo_params)
                 .done(function(data,textStatus,jqXHR) {
@@ -82,9 +83,8 @@
         defaults: {
             module: {value:""},
             log: {value:""},
-            algomanager: {value: "http://manager.algorun.org"},
             docker_image: {value: "algorun/bnreduction"},
-            log_file_path: {value: "http://algopiper.algorun.org"}
+            algomanager: {value: "http://localhost:8764"}
         },
         inputs:1,
         outputs: 1,
@@ -97,32 +97,33 @@
         },
         info: function() {
             var docker_server = '';
+            var result;
             jQuery.ajax({
-                url: this.algomanager + '/api/v1/deploy',
-                data: {image: this.docker_image, node_id: this.id},
-                success: function(result) {
-                    if(result["endpoint"]){
-                        docker_server = result["endpoint"];
-                    }
-                  },
-                async: false
-            });
-            if(docker_server === 'not found'){
-                return 'info will be available after you click deploy ..';
-            }
-            if(docker_server !== ''){
-                var module_manifest = "unknown";
-                jQuery.ajax({
-                    url: docker_server + '/v1/manifest',
-                    success: function(result) {
-                        module_manifest = result["responseText"];
-                    },
-                    error: function(result) {
-                        module_manifest = result["responseText"];
+                    url: this.algomanager + '/api/v1/deploy',
+                    method: 'POST',
+                    data: {image: this.docker_image, node_id: this.id},
+                    success: function(reply) {
+                        result = reply;
                     },
                     async: false
                 });
-                if(module_manifest !== 'unknown'){
+            if(typeof result =='object'){
+                if(result['status'] === 'success'){
+                    var docker_server = result['endpoint'];
+                    var module_manifest = "unknown";
+                    jQuery.ajax({
+                        url: docker_server + '/v1/manifest',
+                        success: function(result) {
+                            module_manifest = result["responseText"];
+                        },
+                        error: function(result) {
+                            module_manifest = result["responseText"];
+                        },
+                        async: false
+                    });
+                    if(module_manifest === 'unknown'){
+                        return 'Cannot load node info!'
+                    }
                     var info_tab = '';
                     module_manifest = JSON.parse(stripJsonComments(module_manifest));
                     info_tab += '#' + module_manifest["algo_name"] + '\n';
@@ -149,10 +150,13 @@
                     info_tab += '___\n';
                     info_tab += '# About AlgoRun\n';
                     info_tab += 'This algorithm is provided to you by AlgoRun. AlgoRun aims at fixing computational science reproducibility by offering an easy way to publish and use algorithms. More information on [http://algorun.org](http://algorun.org)';
-                    return info_tab;   
+                    return info_tab;
+                }else{
+                    return result['error_message'];
                 }
+            } else {
+                return "Cannot connect to Algomanager!";
             }
-            return 'Cannot load info from node!';
         },
         oneditprepare: function() {
             var node = this;
@@ -164,81 +168,83 @@
                 $("#wrapper").dialog( "option", "width", 400 );
                 $('#wrapper').dialog('open');
                 var docker_server = '';
+                var result;
                 jQuery.ajax({
                     url: node.algomanager + '/api/v1/deploy',
+                    method: 'POST',
                     data: {image: node.docker_image, node_id: node.id},
-                    success: function(result) {
-                        if(result["endpoint"]){
-                            docker_server = result["endpoint"];
-                        }
+                    success: function(reply) {
+                        result = reply;
                     },
                     async: false
                 });
-                if(docker_server === 'not found'){
-                    $('#wrapper').html("<p style='text-align: center;'>parameters not available!<br>deploy the node again ..</p>");
-                    return false;
-                }
-                if(docker_server !== ''){
-                    var module_manifest = "unknown";
-                    jQuery.ajax({
-                        url: docker_server + '/v1/manifest',
-                        success: function(result) {
-                            module_manifest = result["responseText"];
-                        },
-                        error: function(result) {
-                            module_manifest = result["responseText"];
-                        },
-                        async: false
-                    });
-                    if(module_manifest !== 'unknown'){
-                        module_manifest = JSON.parse(stripJsonComments(module_manifest));
-                        default_params = module_manifest["algo_parameters"];
-                        if(jQuery.isEmptyObject(algo_params)){
-                            algo_params = module_manifest["algo_parameters"];
-                            updateParams(docker_server + '/v1/config', false);
-                        }
-                        // render parameters
-                        var params_ui = "<div style='overflow-y: scroll; height: 205px;'><table style='width: 100%; background-color: #F2F2F2;'>";                
-                        for (var key in algo_params) {
-                            if (algo_params.hasOwnProperty(key)) {
-                                var key_id = node.id + '-' + key;
-                                var value_id = node.id + '-in-' + key;
-                                params_ui += "<tr><td style='width:50%; text-align: center;'><div id='" + key_id +"'>" + key + "</div></td><td style='text-align: center;'><input type='text' style='width:75px; text-align: center; margin-top: 7px;' value='" + algo_params[key]+ "' id='" + value_id +"'></td></tr>";
+                if(typeof result =='object'){
+                    if(result['status'] === 'success'){
+                        var docker_server = result['endpoint'];
+                        var module_manifest = "unknown";
+                        jQuery.ajax({
+                            url: docker_server + '/v1/manifest',
+                            success: function(result) {
+                                module_manifest = result["responseText"];
+                            },
+                            error: function(result) {
+                                module_manifest = result["responseText"];
+                            },
+                            async: false
+                        });
+                        if(module_manifest === 'unknown'){
+                            $('#wrapper').html("<p style='text-align: center;'>Cannot load manifest!</p>");
+                        }else{
+                            module_manifest = JSON.parse(stripJsonComments(module_manifest));
+                            default_params = module_manifest["algo_parameters"];
+                            if(jQuery.isEmptyObject(algo_params)){
+                                algo_params = module_manifest["algo_parameters"];
+                                updateParams(docker_server + '/v1/config', false);
                             }
+                            // render parameters
+                            var params_ui = "<div style='overflow-y: scroll; height: 205px;'><table style='width: 100%; background-color: #F2F2F2;'>";                
+                            for (var key in algo_params) {
+                                if (algo_params.hasOwnProperty(key)) {
+                                    var key_id = node.id + '-' + key;
+                                    var value_id = node.id + '-in-' + key;
+                                    params_ui += "<tr><td style='width:50%; text-align: center;'><div id='" + key_id +"'>" + key + "</div></td><td style='text-align: center;'><input type='text' style='width:75px; text-align: center; margin-top: 7px;' value='" + algo_params[key]+ "' id='" + value_id +"'></td></tr>";
+                                }
+                            }
+                            params_ui += "</table></div><br>";
+                            
+                            // render buttons
+                            params_ui += "<table style='width:100%;' id ='aaa'><tr>";
+                
+                            params_ui += "<td style='width:50%; text-align: center;'><button id='defaults-button'style='width: 100%;'>reset defaults</button></td>";
+                
+                            params_ui += "<td style='width:50%; text-align: center;'><button id='save-button' style='width: 100%;' >save</button>   </td>";
+                            params_ui += "</tr></table>";
+                            $('#wrapper').html(params_ui);
+                            $('#save-button').on('click', function(){
+                                for (var key in algo_params) {
+                                    if (algo_params.hasOwnProperty(key)) {
+                                        var value_id = node.id + '-in-' + key;
+                                        var new_value = document.getElementById(value_id).value;
+                                        algo_params[key] = new_value;
+                                    }
+                                }
+                                updateParams(docker_server + '/v1/config', true);
+                                $(this).closest('.ui-dialog-content').dialog('close'); 
+                            });
+                
+                            $('#defaults-button').on('click', function(){
+                                algo_params = default_params;
+                                updateParams(docker_server + '/v1/config', true);
+                                $(this).closest('.ui-dialog-content').dialog('close'); 
+                            });
+                            return false;
                         }
-                        params_ui += "</table></div><br>";
+                    }else{
+                        $('#wrapper').html("<p style='text-align: center;'>Back-end docker container has a problem!</p>");
                     }
-                } else {
-                    $('#wrapper').html("<p style='text-align: center;'>cannot connect to algomanager</p>");
-                    return false;
-                }
-                
-                // render buttons
-                params_ui += "<table style='width:100%;' id ='aaa'><tr>";
-                
-                params_ui += "<td style='width:50%; text-align: center;'><button id='defaults-button'style='width: 100%;'>reset defaults</button></td>";
-                
-                params_ui += "<td style='width:50%; text-align: center;'><button id='save-button' style='width: 100%;' >save</button></td>";
-                params_ui += "</tr></table>";
-                $('#wrapper').html(params_ui);
-                $('#save-button').on('click', function(){
-                    for (var key in algo_params) {
-                        if (algo_params.hasOwnProperty(key)) {
-                            var value_id = node.id + '-in-' + key;
-                            var new_value = document.getElementById(value_id).value;
-                            algo_params[key] = new_value;
-                        }
-                    }
-                    updateParams(docker_server + '/v1/config', true);
-                    $(this).closest('.ui-dialog-content').dialog('close'); 
-                });
-                
-                $('#defaults-button').on('click', function(){
-                    algo_params = default_params;
-                    updateParams(docker_server + '/v1/config', true);
-                    $(this).closest('.ui-dialog-content').dialog('close'); 
-                });
-                return false;
+                }else{
+                    $('#wrapper').html("<p style='text-align: center;'>Cannot connect to back-end container!</p>");
+                }                
             });
         }
     });
