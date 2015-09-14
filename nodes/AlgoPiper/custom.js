@@ -15,7 +15,7 @@ module.exports = function(RED) {
         var log_file_path = settings.log_file_path;
         RED.nodes.createNode(this, config);
         var node = this;
-        var docker_image = config.docker_image;;
+        var docker_image = config.docker_image;
         var docker_server = "";
         var log = config.log;
         var filename = 'workflow-log/' + node.id + '.json';;
@@ -86,7 +86,7 @@ module.exports = function(RED) {
                             
                             require('dns').lookup(require('os').hostname(), function (err, add, fam) {
                                 var file_path = log_file_path + '/' + filename;
-                                sendDebug({id:node.id,name:"BNReduction LOG",topic:"computation result",msg:file_path,_path:module_msg._path});
+                                sendDebug({id:node.id,name:"Custom LOG",topic:"computation result",msg:file_path,_path:module_msg._path});
                             });
                         }
                         node.send(module_msg);
@@ -99,5 +99,5 @@ module.exports = function(RED) {
                     });
         }
     }
-    RED.nodes.registerType('BNReduction', ModuleNode);
+    RED.nodes.registerType('Custom', ModuleNode);
 }

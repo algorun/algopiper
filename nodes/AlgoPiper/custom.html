@@ -1,0 +1,222 @@
+<script type="text/javascript">
+    var singleComment = 1;
+    var multiComment = 2;
+
+	function stripJsonComments(str) {
+		var currentChar;
+		var nextChar;
+		var insideString = false;
+		var insideComment = false;
+		var ret = '';
+
+		for (var i = 0; i < str.length; i++) {
+			currentChar = str[i];
+			nextChar = str[i + 1];
+
+			if (!insideComment && currentChar === '"') {
+				var escaped = str[i - 1] === '\\' && str[i - 2] !== '\\';
+				if (!insideComment && !escaped && currentChar === '"') {
+					insideString = !insideString;
+				}
+			}
+
+			if (insideString) {
+				ret += currentChar;
+				continue;
+			}
+
+			if (!insideComment && currentChar + nextChar === '//') {
+				insideComment = singleComment;
+				i++;
+			} else if (insideComment === singleComment && currentChar + nextChar === '\r\n') {
+				insideComment = false;
+				i++;
+				ret += currentChar;
+				ret += nextChar;
+				continue;
+			} else if (insideComment === singleComment && currentChar === '\n') {
+				insideComment = false;
+			} else if (!insideComment && currentChar + nextChar === '/*') {
+				insideComment = multiComment;
+				i++;
+				continue;
+			} else if (insideComment === multiComment && currentChar + nextChar === '*/') {
+				insideComment = false;
+				i++;
+				continue;
+			}
+
+			if (insideComment) {
+				continue;
+			}
+
+			ret += currentChar;
+		}
+
+		return ret;
+	}
+    
+    var algo_params = {};
+    var default_params = {};
+    
+    function updateParams(server, showConfirmation){
+        var jqxhr = $.post( server, algo_params)
+                .done(function(data,textStatus,jqXHR) {
+                    if(data.substring(0, 6) == "Cannot"){
+                        alert("There is no such parameters!");
+                        algo_params = default_params;
+                    } else {
+                        if(showConfirmation){
+                            alert("Parameters saved ..");
+                        }
+                    }
+                })
+                .fail(function() {
+                    alert("Un-expected error occured");
+                    algo_params = default_params;
+                }); 
+    }
+    
+    RED.nodes.registerType('Custom',{
+        category: 'AlgoPiper',
+        color: '#58FA82',
+        defaults: {
+            module: {value:""},
+            log: {value:"Yes"},
+            docker_image: {value: "none"},
+            algomanager: {value: "http://algomanager.algorun.org"}
+        },
+        inputs:1,
+        outputs: 1,
+        icon: "serial.png",
+        label: function(){
+            return this.module || "Custom";
+        },
+        paletteLabel: function(){
+            return this.module || "Custom";
+        },
+        info: function() {
+            var docker_server = '';
+            var result;
+            jQuery.ajax({
+                    url: this.algomanager + '/api/v1/deploy',
+                    method: 'POST',
+                    data: {image: this.docker_image, node_id: this.id},
+                    success: function(reply) {
+                        result = reply;
+                    },
+                    async: false
+                });
+            if(typeof result =='object'){
+                if(result['status'] === 'success'){
+                    var docker_server = result['endpoint'];
+                    var module_manifest = "unknown";
+                    jQuery.ajax({
+                        url: docker_server + '/v1/manifest',
+                        success: function(result) {
+                            module_manifest = result["responseText"];
+                        },
+                        error: function(result) {
+                            module_manifest = result["responseText"];
+                        },
+                        async: false
+                    });
+                    if(module_manifest === 'unknown'){
+                        return 'Cannot load node info!'
+                    }
+                    var info_tab = '';
+                    module_manifest = JSON.parse(stripJsonComments(module_manifest));
+                    info_tab += '#' + module_manifest["algo_name"] + '\n';
+                    for(var i = 0;i <module_manifest["algo_authors"].length; i++) {
+                        if(i == 0) {
+                            info_tab += module_manifest["algo_authors"][i]["name"] + '\n';
+                        } else {
+                            info_tab += ', ' + module_manifest["algo_authors"][i]["name"] + '\n';
+                        }
+                    }
+                    info_tab += '___\n';
+                    info_tab += '# Summary\ntags: ';
+                    for(var i = 0;i<module_manifest["algo_keywords"].length; i++){
+                        if(i == 0) {
+                            info_tab += module_manifest["algo_keywords"][i] + '\n';
+                        } else {
+                            info_tab += ', ' + module_manifest["algo_keywords"][i] + '\n';
+                        }
+                    }
+                    info_tab += '\nalgo_summary: You can try this algorithm here: [http://bnreduction.algorun.org](http://bnreduction.algorun.org)\n';
+                    info_tab += '___\n';
+                    info_tab += '# Description\n' + module_manifest["algo_description"].replace('<br>', '\n') + '\n';
+                    info_tab += '\nmore information: ' + module_manifest["algo_website"] + '\n';
+                    info_tab += '___\n';
+                    info_tab += '# About AlgoRun\n';
+                    info_tab += 'This algorithm is provided to you by AlgoRun. AlgoRun aims at fixing computational science reproducibility by offering an easy way to publish and use algorithms. More information on [http://algorun.org](http://algorun.org)';
+                    return info_tab;
+                }else{
+                    return "A custom node to use AlgoPiper algorithms. Double click on the node to choose an algorithm ..";
+                }
+            } else {
+                return "A custom node to use AlgoPiper algorithms";
+            }
+        },
+        oneditprepare: function() {
+            var node = this;
+            var available_images = '<option value="none"> - choose - </option>';
+            available_images += '<option value="algorun/bnreduction">BNReduction</option>';
+            available_images += '<option value="algorun/cyclone">Cyclone</option>';
+            available_images += '<option value="algorun/react">REACT</option>';
+            available_images += '<option value="algorun/sdds">SDDS</option>';
+            $('#node-input-docker_image').html(available_images);
+            $('#node-input-docker_image').val(node.docker_image);
+            $('#node-input-docker_image').on('change', function() {
+                node.module = $('#node-input-docker_image option:selected').text();
+                $('#module-info').html('getting module info ..');
+                if(this.value !== 'none'){
+                    var jqxhr = $.post( node.algomanager + "/api/v1/deploy", { image: this.value, node_id: node.id })
+                    .done(function(data,textStatus,jqXHR) {
+                        if(data['status'] === 'success'){
+                            // get description and display
+                            var docker_server = data['endpoint'];
+                            var jqxhr = $.get(docker_server + '/v1/manifest')
+                                .done(function(result) {
+                                    var manifest = result['responseText'];
+                                    manifest = stripJsonComments(manifest);
+                                    manifest = JSON.parse(manifest);
+                                    $('#module-info').html(manifest['algo_description']);
+                                })
+                                .fail(function(result) {
+                                    var manifest = result['responseText'];
+                                    manifest = stripJsonComments(manifest);
+                                    manifest = JSON.parse(manifest);
+                                    $('#module-info').html(manifest['algo_description']);    
+                                });
+                            
+                        } else {
+                            $('#module-info').html(data['error_message']);     
+                        }
+                    })
+	               .fail(function(data,textStatus,jqXHR) {
+                        var json = JSON.stringify(data);
+                        $('#module-info').html(json); 
+                    });
+                }else{
+                    $('#module-info').html('Select a module to display info ..');
+                }
+            });
+        }
+            
+    });
+</script>
+
+<script type="text/x-red" data-template-name="Custom">
+    <div class="form-row">
+        <label for="node-input-docker_image"><i class="icon-tag"></i> Module</label>
+        <select id="node-input-docker_image" style="width:73%">
+          
+        </select>
+    </div>
+    <div class="form-tips" id="module-info">Select a module to display info ..</div>
+</script>
+
+<script type="text/x-red" data-help-name="Custom">
+    
+</script>
