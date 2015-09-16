@@ -12,8 +12,9 @@
 coverage
 credentials.json
 flows*.json
-nodes/node-red-nodes/
-node_modules
-public
 locales/zz-ZZ
 nodes/core/locales/zz-ZZ
+workflow-log
+calling workflows
+node_modules
+.brackets.json
