@@ -1,6 +1,6 @@
 {
     "name"         : "AlgoPiper",
-    "version"      : "0.1",
+    "version"      : "0.1.1",
     "description"  : "A visual tool for building workflows",
     "homepage"     : "http://algorun.org",
     "license"      : "Apache-2.0",
@@ -50,14 +50,9 @@
         "passport-oauth2-client-password":"0.1.2",
         "oauth2orize":"1.0.1",
         "i18next":"1.10.2",
-        "semver": "5.0.1",
-        "node-red-node-feedparser":"0.1.*",
-        "node-red-node-email":"0.1.*",
-        "node-red-node-twitter":"0.1.*",
-        "node-red-node-rbe":"0.1.*"
+        "semver": "5.0.1"
     },
     "optionalDependencies": {
-        "node-red-node-serialport":"0.0.*",
         "bcrypt":"0.8.3"
     },
     "devDependencies": {
