@@ -3,7 +3,6 @@ module.exports = function(RED) {
     var fs = require("fs-extra");
     var os = require("os");
     var request = require('request');
-    var sleep = require('sleep');
     var settings = require('./algomanager_settings.js');
     
     function sendDebug(msg) {
