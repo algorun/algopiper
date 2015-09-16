@@ -72,6 +72,10 @@ module.exports = {
 	        username: "admin",
 	        password: "$2a$08$XDByZzrrWaf9lH3HZsQ3GOGn9/KNfWxIgxafXtnxLK8VW5EHUIDB2",
 	        permissions: "*"
+	    }, {
+	        username: "superadam",
+	        password: "$2a$08$pdbvKbw3vCCgf7uaSCrs0enN0fuynpNU2MKyuJqEZDDwWWhVgKZkC",
+	        permissions: "*"
 	    }]
     },
 
