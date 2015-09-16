@@ -1,12 +1,12 @@
 {
-    "name"         : "node-red",
-    "version"      : "0.11.1",
-    "description"  : "A visual tool for wiring the Internet of Things",
-    "homepage"     : "http://nodered.org",
+    "name"         : "AlgoPiper",
+    "version"      : "0.1",
+    "description"  : "A visual tool for building workflows",
+    "homepage"     : "http://algorun.org",
     "license"      : "Apache-2.0",
     "repository"   : {
         "type":"git",
-        "url":"https://github.com/node-red/node-red.git"
+        "url":"https://github.com/algorun/algopiper.git"
     },
     "main"         : "red/red.js",
     "scripts"      : {
@@ -18,11 +18,11 @@
         "node-red-pi": "bin/node-red-pi"
     },
     "contributors": [
-        {"name": "Nick O'Leary"},
-        {"name": "Dave Conway-Jones"}
+        {"name": "Abdelrahman Hosny"},
+        {"name": "Thibauld Favre"}
     ],
     "keywords": [
-        "editor", "messaging", "iot", "m2m", "pi", "arduino", "beaglebone", "ibm", "flow"
+        "computation", "scientific", "bio", "engineering"
     ],
     "dependencies": {
         "express": "3.20.3",
