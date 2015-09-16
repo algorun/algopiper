@@ -28,7 +28,7 @@ describe("red/nodes/index", function() {
         index.clearRegistry();
     });
 
-    var testFlows = [{"type":"test","id":"tab1","label":"Sheet 1"}];
+    var testFlows = [{"type":"test","id":"tab1","label":"Workflow 1"}];
     var storage = {
             getFlows: function() {
                 return when(testFlows);

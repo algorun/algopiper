@@ -22,7 +22,7 @@ var localfilesystem = require("../../../red/storage/localfilesystem");
 
 describe('LocalFileSystem', function() {
     var userDir = path.join(__dirname,".testUserHome");
-    var testFlow = [{"type":"tab","id":"d8be2a6d.2741d8","label":"Sheet 1"}];
+    var testFlow = [{"type":"tab","id":"d8be2a6d.2741d8","label":"Workflow 1"}];
     beforeEach(function(done) {
         fs.remove(userDir,function(err) {
             fs.mkdir(userDir,done);
@@ -195,7 +195,7 @@ describe('LocalFileSystem', function() {
                 fs.existsSync(defaultFlowFilePath).should.be.false;
                 fs.existsSync(flowFilePath).should.be.true;
                 var content = fs.readFileSync(flowFilePath,'utf8');
-                var testFlow2 = [{"type":"tab","id":"bc5672ad.2741d8","label":"Sheet 2"}];
+                var testFlow2 = [{"type":"tab","id":"bc5672ad.2741d8","label":"Workflow 2"}];
                 
                 localfilesystem.saveFlows(testFlow2).then(function() {
                     fs.existsSync(flowFileBackupPath).should.be.true;
