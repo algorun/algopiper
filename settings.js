@@ -166,7 +166,7 @@ module.exports = {
     // palette. If a node's category is not in the list, the category will get
     // added to the end of the palette.
     // If not set, the following default order is used:
-    paletteCategories: ['AlgoPiper', 'input', 'output', 'function', 'social', 'storage', 'analysis', 'advanced', 'subflows',],
+    paletteCategories: ['input', 'function', 'output', 'social', 'storage', 'analysis', 'advanced', 'subflows',],
 
     // Configure the logging output
     logging: {

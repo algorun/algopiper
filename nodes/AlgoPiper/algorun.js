@@ -98,5 +98,5 @@ module.exports = function(RED) {
                     });
         }
     }
-    RED.nodes.registerType('Custom', ModuleNode);
+    RED.nodes.registerType('AlgoRun', ModuleNode);
 }

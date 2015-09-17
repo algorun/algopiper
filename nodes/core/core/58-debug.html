@@ -14,23 +14,86 @@
   limitations under the License.
 -->
 
-<script type="text/x-red" data-template-name="OUTPUT">
-    
+<script type="text/x-red" data-template-name="debug">
+    <div class="form-row">
+        <label for="node-input-select-complete"><i class="fa fa-list"></i> <span data-i18n="debug.output"></span></label>
+        <select type="text" id="node-input-select-complete" style="display: inline-block; width: 250px; vertical-align: top;">
+            <option value="false" data-i18n="debug.msgprop"></option>
+            <option value="true" data-i18n="debug.msgobj"></option>
+        </select>
+    </div>
+    <div class="form-row" id="node-prop-row">
+        <label for="node-input-complete">&nbsp;</label>msg.<input type="text" style="width:208px" id="node-input-complete">
+    </div>
+    <div class="form-row">
+        <label for="node-input-console"><i class="fa fa-random"></i> <span data-i18n="debug.to"></span></label>
+        <select type="text" id="node-input-console" style="display: inline-block; width: 250px; vertical-align: top;">
+            <option value="false" data-i18n="debug.debtab"></option>
+            <option value="true" data-i18n="debug.tabcon"></option>
+        </select>
+    </div>
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> <span data-i18n="common.label.name"></span></label>
+        <input type="text" id="node-input-name" data-i18n="[placeholder]common.label.name">
+    </div>
 </script>
 
-<script type="text/x-red" data-help-name="OUTPUT">
-    <p>This node can be connected to the output of any node. It can be used to display the output of AlgoPiper workflows in the OUTPUT tab of the sidebar</p>
+<script type="text/x-red" data-help-name="debug">
+    <p>The Debug node can be connected to the output of any node. It can be used to display the output of any message property in the debug tab of the sidebar. The default is to display <b>msg.payload</b>.</p>
+    <p>Each message will also display the timestamp, <b>msg.topic</b> and the property chosen to output.</p>
+    <p>The sidebar can be accessed under the options drop-down in the top right corner.</p>
+    <p>The button to the right of the node will toggle its output on and off so you can de-clutter the debug window.</p>
+    <p>If the payload is an object or buffer it will be stringified first for display and indicate that by saying "(Object)" or "(Buffer)".</p>
+    <p>Selecting any particular message will highlight (in red) the debug node that reported it. This is useful if you wire up multiple debug nodes.</p>
+    <p>Optionally can show the complete <b>msg</b> object.</p>
+    <p>In addition any calls to node.warn or node.error will appear here.</p>
 </script>
 
 <script type="text/javascript">
-    RED.nodes.registerType('OUTPUT',{
-        category: 'input',
+
+    function oneditprepare() {
+        if (this.complete === "true" || this.complete === true) {
+            // show complete message object
+            $("#node-input-select-complete").val("true");
+            $("#node-prop-row").hide();
+        } else {
+            // show msg.[   ]
+            var property = (!this.complete||(this.complete === "false")) ? "payload" : this.complete+"";
+            $("#node-input-select-complete").val("false");
+            $("#node-input-complete").val(property);
+            $("#node-prop-row").show();
+        }
+        $("#node-input-select-complete").change(function() {
+            var v = $("#node-input-select-complete option:selected").val();
+            $("#node-input-complete").val(v);
+            if (v !== "true") {
+                $("#node-input-complete").val("payload");
+                $("#node-prop-row").show();
+                $("#node-input-complete").focus();
+            } else {
+                $("#node-prop-row").hide();
+            }
+        });
+    }
+
+    RED.nodes.registerType('debug',{
+        category: 'output',
         defaults: {
+            name: {value:""},
             active: {value:true},
             console: {value:"false"},
             complete: {value:"false", required:true}
         },
-        label: "OUTPUT",
+        label: function() {
+            if (this.complete === true || this.complete === "true") {
+                return this.name||"msg";
+            } else {
+                return this.name || "msg." + ((!this.complete || this.complete === "false") ? "payload" : this.complete);
+            }
+        },
+        labelStyle: function() {
+            return this.name?"node_label_italic":"";
+        },
         color:"#87a980",
         inputs:1,
         outputs:0,
@@ -39,16 +102,16 @@
         button: {
             toggle: "active",
             onclick: function() {
-                var label = this.name||"OUTPUT";
+                var label = this.name||"debug";
                 var node = this;
                 $.ajax({
-                    url: "OUTPUT/"+this.id+"/"+(this.active?"enable":"disable"),
+                    url: "debug/"+this.id+"/"+(this.active?"enable":"disable"),
                     type: "POST",
                     success: function(resp, textStatus, xhr) {
                         if (xhr.status == 200) {
-                            RED.notify(node._("OUTPUT.notification.activated",{label:label}),"success");
+                            RED.notify(node._("debug.notification.activated",{label:label}),"success");
                         } else if (xhr.status == 201) {
-                            RED.notify(node._("OUTPUT.notification.deactivated",{label:label}),"success");
+                            RED.notify(node._("debug.notification.deactivated",{label:label}),"success");
                         }
                     },
                     error: function(jqXHR,textStatus,errorThrown) {
@@ -67,19 +130,19 @@
             var content = document.createElement("div");
             $(content).css({"position":"relative","height":"100%"});
             var toolbar = document.createElement("div");
-            toolbar.id = "OUTPUT-toolbar";
+            toolbar.id = "debug-toolbar";
             content.appendChild(toolbar);
 
-            toolbar.innerHTML = '<div class="pull-right"><a id="OUTPUT-tab-clear" title="clear log" class="button" href="#"><i class="fa fa-trash"></i></a></div> ';
+            toolbar.innerHTML = '<div class="pull-right"><a id="debug-tab-clear" title="clear log" class="button" href="#"><i class="fa fa-trash"></i></a></div> ';
 
             var messages = document.createElement("div");
-            messages.id = "OUTPUT-content";
+            messages.id = "debug-content";
             content.appendChild(messages);
 
             RED.sidebar.addTab({
-                id: "OUTPUT",
-                label: "OUTPUT",
-                name: "OUTPUT",
+                id: "debug",
+                label: this._("debug.sidebar.label"),
+                name: this._("debug.sidebar.name"),
                 content: content
             });
 
@@ -88,13 +151,13 @@
                 return d.toLocaleString();
             }
 
-            var sbc = document.getElementById("OUTPUT-content");
+            var sbc = document.getElementById("debug-content");
 
             var messageCount = 0;
             var that = this;
             RED._debug = function(msg) {
                 that.handleDebugMessage("",{
-                    name:"OUTPUT",
+                    name:"debug",
                     msg:msg
                 });
             }
@@ -135,10 +198,10 @@
                 var payload = sanitize((o.msg||"").toString());
                 var format = sanitize((o.format||"").toString());
 
-                msg.className = 'OUTPUT-message'+(o.level?(' OUTPUT-message-level-'+o.level):'');
-                msg.innerHTML = '<span class="OUTPUT-message-date">'+
+                msg.className = 'debug-message'+(o.level?(' debug-message-level-'+o.level):'');
+                msg.innerHTML = '<span class="debug-message-date">'+
                                 getTimestamp()+'</span>'+
-                                (name?'<span class="OUTPUT-message-name">['+name+']':'')+
+                                (name?'<span class="debug-message-name">['+name+']':'')+
                                 '</span>';
                 // NOTE: relying on function error to have a "type" that all other msgs don't
                 if (o.hasOwnProperty("type") && (o.type === "function")) {
@@ -148,35 +211,32 @@
                         errorLvl = 30;
                         errorLvlType = 'warn';
                     }
-                    msg.className = 'OUTPUT-message OUTPUT-message-level-' + errorLvl;
-                    msg.innerHTML += '<span class="OUTPUT-message-topic">[function] : (' + errorLvlType + ')</span>';
+                    msg.className = 'debug-message debug-message-level-' + errorLvl;
+                    msg.innerHTML += '<span class="debug-message-topic">[function] : (' + errorLvlType + ')</span>';
                 } else {
-                    msg.innerHTML += '<span class="OUTPUT-message-topic">'+
+                    msg.innerHTML += '<span class="debug-message-topic">'+
                                     (o.topic?topic+' : ':'')+
                                     (o.property?'[msg.'+property+']':'[msg]')+" : "+format+
 
                                     '</span>';
                 }
-                if (payload.lastIndexOf('http', 0) === 0){
-                    payload = "<a href=" + payload+ " target='_blank'>" + payload + "</a>";
-                }
-                msg.innerHTML += '<span class="OUTPUT-message-payload">'+ payload+ '</span>';
+                msg.innerHTML += '<span class="debug-message-payload">'+ payload+ '</span>';
                 var atBottom = (sbc.scrollHeight-messages.offsetHeight-sbc.scrollTop) < 5;
                 messageCount++;
                 $(messages).append(msg);
 
                 if (messageCount > 200) {
-                    $("#OUTPUT-content .OUTPUT-message:first").remove();
+                    $("#debug-content .debug-message:first").remove();
                     messageCount--;
                 }
                 if (atBottom) {
                     $(sbc).scrollTop(sbc.scrollHeight);
                 }
             };
-            RED.comms.subscribe("OUTPUT",this.handleDebugMessage);
+            RED.comms.subscribe("debug",this.handleDebugMessage);
 
-            $("#OUTPUT-tab-clear").click(function() {
-                $(".OUTPUT-message").remove();
+            $("#debug-tab-clear").click(function() {
+                $(".debug-message").remove();
                 messageCount = 0;
                 RED.nodes.eachNode(function(node) {
                     node.highlighted = false;
@@ -186,15 +246,16 @@
             });
         },
         onpaletteremove: function() {
-            RED.comms.unsubscribe("OUTPUT",this.handleDebugMessage);
-            RED.sidebar.removeTab("OUTPUT");
+            RED.comms.unsubscribe("debug",this.handleDebugMessage);
+            RED.sidebar.removeTab("debug");
             delete RED._debug;
         },
+        oneditprepare: oneditprepare
     });
 </script>
 
 <style>
-    #OUTPUT-content {
+    #debug-content {
         position: absolute;
         top: 30px;
         bottom: 0px;
@@ -202,51 +263,51 @@
         right: 0px;
         overflow-y: scroll;
     }
-    #OUTPUT-toolbar {
+    #debug-toolbar {
         padding: 3px 10px;
         height: 24px;
         background: #f3f3f3;
     }
-    .OUTPUT-message {
+    .debug-message {
         cursor: pointer;
         border-bottom: 1px solid #eee;
         border-left: 8px solid #eee;
         border-right: 8px solid #eee;
         padding: 2px;
     }
-    .OUTPUT-message-date {
+    .debug-message-date {
         background: #fff;
         font-size: 9px;
         color: #aaa;
         padding: 1px 5px 1px 1px;
     }
-    .OUTPUT-message-topic {
+    .debug-message-topic {
         display: block;
         background: #fff;
         padding: 1px 5px;
         font-size: 10px;
         color: #a66;
     }
-    .OUTPUT-message-name {
+    .debug-message-name {
         background: #fff;
         padding: 1px 5px;
         font-size: 9px;
         color: #aac;
     }
-    .OUTPUT-message-payload {
+    .debug-message-payload {
         display: block;
         padding: 2px;
         background: #fff;
     }
-    .OUTPUT-message-level-log {
+    .debug-message-level-log {
         border-left-color: #eee;
         border-right-color: #eee;
     }
-    .OUTPUT-message-level-30 {
+    .debug-message-level-30 {
         border-left-color: #ffdf9d;
         border-right-color: #ffdf9d;
     }
-    .OUTPUT-message-level-20 {
+    .debug-message-level-20 {
         border-left-color: #f99;
         border-right-color: #f99;
     }

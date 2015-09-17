@@ -77,8 +77,8 @@
                 }); 
     }
     
-    RED.nodes.registerType('Custom',{
-        category: 'AlgoPiper',
+    RED.nodes.registerType('AlgoRun',{
+        category: 'function',
         color: '#58FA82',
         defaults: {
             module: {value:""},
@@ -90,10 +90,10 @@
         outputs: 1,
         icon: "serial.png",
         label: function(){
-            return this.module || "Custom";
+            return this.module || "AlgoRun";
         },
         paletteLabel: function(){
-            return this.module || "Custom";
+            return this.module || "AlgoRun";
         },
         info: function() {
             var docker_server = '';
@@ -152,10 +152,10 @@
                     info_tab += 'This algorithm is provided to you by AlgoRun. AlgoRun aims at fixing computational science reproducibility by offering an easy way to publish and use algorithms. More information on [http://algorun.org](http://algorun.org)';
                     return info_tab;
                 }else{
-                    return "A custom node to use AlgoPiper algorithms. Double click on the node to choose an algorithm ..";
+                    return "A custom node to use AlgoRun algorithms. Double click on the node to choose an algorithm ..";
                 }
             } else {
-                return "A custom node to use AlgoPiper algorithms";
+                return "A custom node to use AlgoRun algorithms";
             }
         },
         oneditprepare: function() {
@@ -207,7 +207,7 @@
     });
 </script>
 
-<script type="text/x-red" data-template-name="Custom">
+<script type="text/x-red" data-template-name="AlgoRun">
     <div class="form-row">
         <label for="node-input-docker_image"><i class="icon-tag"></i> Module</label>
         <select id="node-input-docker_image" style="width:73%">
@@ -217,6 +217,6 @@
     <div class="form-tips" id="module-info">Select a module to display info ..</div>
 </script>
 
-<script type="text/x-red" data-help-name="Custom">
-    
+<script type="text/x-red" data-help-name="AlgoRun">
+    <p>A custom node to use AlgoRun algorithms</p>
 </script>
