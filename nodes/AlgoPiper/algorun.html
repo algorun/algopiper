@@ -143,7 +143,7 @@
                             info_tab += ', ' + module_manifest["algo_keywords"][i] + '\n';
                         }
                     }
-                    info_tab += '\nalgo_summary: You can try this algorithm here: [http://bnreduction.algorun.org](http://bnreduction.algorun.org)\n';
+                    info_tab += '\nalgo_summary: You can try this algorithm here: [http://' + module_manifest["algo_name"].toLowerCase() + '.algorun.org](http://' + module_manifest["algo_name"].toLowerCase() +'.algorun.org)\n';
                     info_tab += '___\n';
                     info_tab += '# Description\n' + module_manifest["algo_description"].replace('<br>', '\n') + '\n';
                     info_tab += '\nmore information: ' + module_manifest["algo_website"] + '\n';
