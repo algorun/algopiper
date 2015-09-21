@@ -56,24 +56,17 @@
 		return ret;
 	}
     
-    var algo_params = {};
-    var default_params = {};
-    
-    function updateParams(server, showConfirmation){
+    function updateParams(server, algo_params, callback){
         var jqxhr = $.post( server, algo_params)
                 .done(function(data,textStatus,jqXHR) {
                     if(data.substring(0, 6) == "Cannot"){
-                        alert("There is no such parameters!");
-                        algo_params = default_params;
+                        callback('no such parameter');
                     } else {
-                        if(showConfirmation){
-                            alert("Parameters saved ..");
-                        }
+                        callback('success');
                     }
                 })
                 .fail(function() {
-                    alert("Un-expected error occured");
-                    algo_params = default_params;
+                    call('fail');
                 }); 
     }
     
@@ -84,7 +77,9 @@
             module: {value:""},
             log: {value:"Yes"},
             docker_image: {value: "none"},
-            algomanager: {value: "http://manager.algorun.org"}
+            algomanager: {value: "http://manager.algorun.org"},
+            algo_params: {value:{}},
+            defaults_params: {value:{}}
         },
         inputs:1,
         outputs: 1,
@@ -98,6 +93,7 @@
         info: function() {
             var docker_server = '';
             var result;
+            var node = this;
             jQuery.ajax({
                     url: this.algomanager + '/api/v1/deploy',
                     method: 'POST',
@@ -150,12 +146,110 @@
                     info_tab += '___\n';
                     info_tab += '# About AlgoRun\n';
                     info_tab += 'This algorithm is provided to you by AlgoRun. AlgoRun aims at fixing computational science reproducibility by offering an easy way to publish and use algorithms. More information on [http://algorun.org](http://algorun.org)';
+                    
+                    // Update the Parameters Tab
+                    var payload;
+                    if(jQuery.isEmptyObject(module_manifest["algo_parameters"])){
+                        // not parameter configuraion available
+                        payload = "No configuration available for this module";
+                        var param_content = '<div style="padding: 5px; text-align:center;">'+ payload+ '</div>';
+                        $("#Parameters-content").html(param_content);
+                        return info_tab;
+                    }
+                    
+                    var payload = "Parameters Configuration";
+                    node.default_params = module_manifest["algo_parameters"];
+                    
+                    // this line is to ensure that the current params on UI is the same as what is on the server.
+                    if(jQuery.isEmptyObject(node.algo_params)){
+                        node.algo_params = module_manifest["algo_parameters"];
+                        updateParams(docker_server + '/v1/config', node.algo_params,function(result){
+                            if(result === 'no such parameter'){
+                                alert("Parameter names miss-match!");
+                                node.algo_params = node.default_params;
+                                render_params();
+                            } else if (result === 'success') {
+                                //alert("Parameters saved successfully ..");
+                            } else {
+                                alert("Unexpected error occured!");
+                                node.algo_params = node.default_params;
+                                render_params();
+                            }
+                        });
+                    }
+                    
+                    // render parameters
+                    function render_params(){
+                        var params_ui = "<div><table style='width: 100%; background-color: #F2F2F2;'>";                
+                        for (var key in node.algo_params) {
+                            if (node.algo_params.hasOwnProperty(key)) {
+                                var key_id = node.id + '-' + key;
+                                var value_id = node.id + '-in-' + key;
+                                params_ui += "<tr><td style='width:50%; text-align: center;'><div id='" + key_id +"'>" + key + "    </div></td><td style='text-align: center;'><input type='text' style='width:75px; text-align: center; margin-top: 7px;' value='" + node.algo_params[key]+ "' id='" + value_id +"'></td></tr>";
+                            }
+                        }
+                        params_ui += "</table></div><br>";
+                        
+                        // render buttons
+                        params_ui += "<table style='width:100%;' id ='aaa'><tr>";
+                        params_ui += "<td style='width:50%; text-align: center;'><button id='defaults-button'style='width: 100%;'>reset defaults</button></td>";
+                        params_ui += "<td style='width:50%; text-align: center;'><button id='save-button' style='width: 100%;' >save</button>   </td>";
+                        params_ui += "</tr></table><br>";
+                        var param_content = '<div style="padding: 5px; text-align:center;">'+ payload+ '</div>';
+                        param_content += params_ui;
+                        $("#Parameters-content").html(param_content);
+                        
+                        // add actions for the buttons
+                        $('#save-button').on('click', function(){
+                            for (var key in node.algo_params) {
+                                if (node.algo_params.hasOwnProperty(key)) {
+                                    var value_id = node.id + '-in-' + key;
+                                    var new_value = document.getElementById(value_id).value;
+                                    node.algo_params[key] = new_value;
+                                }
+                            }
+                            updateParams(docker_server + '/v1/config', node.algo_params, function(result){
+                                if(result === 'no such parameter'){
+                                    alert("Parameter names miss-match!");
+                                    node.algo_params = node.default_params;
+                                    render_params();
+                                } else if (result === 'success') {
+                                    alert("Parameters saved successfully ..");
+                                    render_params();
+                                } else {
+                                    alert("Unexpected error occured!");
+                                    node.algo_params = node.default_params;
+                                    render_params();
+                                }
+                            });
+                        });
+                        
+                        $('#defaults-button').on('click', function(){
+                            node.algo_params = node.default_params;
+                            updateParams(docker_server + '/v1/config', node.algo_params, function(result){
+                                if(result === 'no such parameter'){
+                                    alert("Parameter names miss-match!");
+                                    node.algo_params = node.default_params;
+                                    render_params();
+                                } else if (result === 'success') {
+                                    alert("Parameters saved successfully ..");
+                                    render_params();
+                                } else {
+                                    alert("Unexpected error occured!");
+                                    node.algo_params = node.default_params;
+                                    render_params();
+                                }       
+                            });
+                        });
+                    }
+                    render_params();
+                    
                     return info_tab;
                 }else{
-                    return "A custom node to use AlgoRun algorithms. Double click on the node to choose an algorithm ..";
+                    return "Double click on the node to choose an algorithm ..";
                 }
             } else {
-                return "A custom node to use AlgoRun algorithms";
+                return "";
             }
         },
         oneditprepare: function() {
@@ -202,8 +296,29 @@
                     $('#module-info').html('Select a module to display info ..');
                 }
             });
+        },
+        onpaletteadd: function() {
+            var content = document.createElement("div");
+            $(content).css({"position":"relative","height":"100%"});
+            var toolbar = document.createElement("div");
+            toolbar.id = "Parameters-toolbar";
+            content.appendChild(toolbar);
+
+            var messages = document.createElement("div");
+            messages.id = "Parameters-content";
+            content.appendChild(messages);
+
+            RED.sidebar.addTab({
+                id: "Parameters",
+                label: "Parameters",
+                name: "Parameters",
+                content: content
+            });
+        },
+        onpaletteremove: function() {
+            RED.comms.unsubscribe("Parameters",this.handleDebugMessage);
+            RED.sidebar.removeTab("Parameters");
         }
-            
     });
 </script>
 
