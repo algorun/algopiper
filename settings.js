@@ -187,5 +187,5 @@ module.exports = {
     },
     
     // Configure the algomanager path
-    algomanager: 'http://localhost:8764'
+    algomanager: 'http://manager.algorun.org'
 }
