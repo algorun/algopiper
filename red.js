@@ -28,6 +28,14 @@ var log = require("./red/log");
 var server;
 var app = express();
 
+app.get('/algomanager', function(req, res){
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "X-Requested-With");
+
+    res.status = 500;
+    res.send({'algomanager': settings.algomanager});
+    return;
+});
 var settingsFile;
 var flowFile;
 

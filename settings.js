@@ -184,5 +184,8 @@ module.exports = {
             // Whether or not to include metric events in the log output
             metrics: false
         }
-    }
+    },
+    
+    // Configure the algomanager path
+    algomanager: 'http://localhost:8764'
 }

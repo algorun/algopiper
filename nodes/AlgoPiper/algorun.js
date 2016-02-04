@@ -3,15 +3,14 @@ module.exports = function(RED) {
     var fs = require("fs-extra");
     var os = require("os");
     var request = require('request');
-    var settings = require('./algomanager_settings.js');
+    var settings = require('../../settings.js');
+    var algomanager = settings.algomanager;
     
     function sendDebug(msg) {
         RED.comms.publish("OUTPUT", msg);
     }
     
     function ModuleNode(config) {
-        var algomanager = settings.algomanager;
-        var log_file_path = settings.log_file_path;
         RED.nodes.createNode(this, config);
         var node = this;
         var docker_image = config.docker_image;
@@ -22,26 +21,27 @@ module.exports = function(RED) {
         
         node.status({fill:"green", shape:"dot", text:"ready"});        
         
+        
         this.on('input', function(msg) {
             module_msg = msg;
             var input_data = '';
             try{
                 var json = JSON.parse(msg.payload);
-                input_data = msg.payload.trim();
+                input_data = msg.payload.trim();image_name
             }catch(e) {
                 msg.payload = e.message;
                 node.send(msg);
                 node.status({fill:"red",shape:"dot",text:"error parsing input!"});
                 return;
             }
+
             node.status({fill:"yellow",shape:"ring",text:"initializing.."});
             // get endpoint from algomanager
-            request.post(algomanager + '/api/v1/deploy', 
-                         { form: { image: docker_image, node_id: node.id } },
+            request.get(algomanager + '/api/v1/get_url?image='+docker_image, 
                         function(error, response, body){        
                             if (!error && response.statusCode == 200) {
                                 var deploy_result = JSON.parse(body);
-                                if(deploy_result['status'] === 'success'){
+                                if(deploy_result['status'] != ''){
                                     var module_server = deploy_result['endpoint'];
                                     // run computation
                                     algo_run(module_server, input_data);
@@ -84,7 +84,7 @@ module.exports = function(RED) {
                             });
                             
                             require('dns').lookup(require('os').hostname(), function (err, add, fam) {
-                                var file_path = log_file_path + '/' + filename;
+                                var file_path = '/' + filename;
                                 sendDebug({id:node.id,name:"Custom LOG",topic:"computation result",msg:file_path,_path:module_msg._path});
                             });
                         }

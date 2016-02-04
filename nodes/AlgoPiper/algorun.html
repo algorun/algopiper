@@ -1,6 +1,7 @@
 <script type="text/javascript">
     var singleComment = 1;
     var multiComment = 2;
+    var algomanager = '';
 
 	function stripJsonComments(str) {
 		var currentChar;
@@ -70,6 +71,39 @@
                 }); 
     }
     
+    function getInfoTab(module_manifest){
+        var info_tab = '';
+        info_tab += '#' + module_manifest["algo_name"] + '\n';
+        for(var i = 0;i <module_manifest["algo_authors"].length; i++) {
+            if(i == 0) {
+                info_tab += module_manifest["algo_authors"][i]["name"] + '\n';
+            } else {
+                info_tab += ', ' + module_manifest["algo_authors"][i]["name"] + '\n';
+            }
+        }
+        info_tab += '___\n';
+        info_tab += '# Summary\ntags: ';
+        for(var i = 0;i<module_manifest["algo_keywords"].length; i++){
+            if(i == 0) {
+                info_tab += module_manifest["algo_keywords"][i] + '\n';
+            } else {
+                info_tab += ', ' + module_manifest["algo_keywords"][i] + '\n';
+            }
+        }
+        info_tab += '\nalgo_summary: You can try this algorithm here: [http://' + module_manifest["algo_name"].toLowerCase() + '.algorun.org](http://' + module_manifest["algo_name"].toLowerCase() +'.algorun.org)\n';
+        info_tab += '___\n';
+        info_tab += '# Description\n' + module_manifest["algo_description"].replace('<br>', '\n') + '\n';
+        info_tab += '\nmore information: ' + module_manifest["algo_website"] + '\n';
+        info_tab += '___\n';
+        info_tab += '# Input & Output\n'
+        info_tab += 'input type: ' + module_manifest['input_type'] + '\n';
+        info_tab += 'output type: ' + module_manifest['output_type'] + '---\n';
+        info_tab += '# About AlgoRun\n';
+        info_tab += 'This algorithm is provided to you by AlgoRun. AlgoRun aims at fixing computational science reproducibility by offering an easy way to publish and use algorithms. More information on [http://algorun.org](http://algorun.org)';
+        
+        return info_tab
+    }
+    
     RED.nodes.registerType('AlgoRun',{
         category: 'function',
         color: '#58FA82',
@@ -77,7 +111,6 @@
             module: {value:""},
             log: {value:"Yes"},
             docker_image: {value: "none"},
-            algomanager: {value: "http://manager.algorun.org"},
             algo_params: {value:{}},
             defaults_params: {value:{}}
         },
@@ -91,213 +124,198 @@
             return this.module || "AlgoRun";
         },
         info: function() {
-            var docker_server = '';
-            var result;
             var node = this;
-            jQuery.ajax({
-                    url: this.algomanager + '/api/v1/deploy',
-                    method: 'POST',
-                    data: {image: this.docker_image, node_id: this.id},
-                    success: function(reply) {
-                        result = reply;
-                    },
-                    async: false
-                });
-            if(typeof result =='object'){
-                if(result['status'] === 'success'){
-                    var docker_server = result['endpoint'];
-                    var module_manifest = "unknown";
-                    jQuery.ajax({
-                        url: docker_server + '/v1/manifest',
-                        success: function(result) {
-                            module_manifest = result["responseText"];
-                        },
-                        error: function(result) {
-                            module_manifest = result["responseText"];
-                        },
-                        async: false
-                    });
-                    if(module_manifest === 'unknown'){
-                        return 'Cannot load node info!'
-                    }
-                    var info_tab = '';
-                    module_manifest = JSON.parse(stripJsonComments(module_manifest));
-                    info_tab += '#' + module_manifest["algo_name"] + '\n';
-                    for(var i = 0;i <module_manifest["algo_authors"].length; i++) {
-                        if(i == 0) {
-                            info_tab += module_manifest["algo_authors"][i]["name"] + '\n';
-                        } else {
-                            info_tab += ', ' + module_manifest["algo_authors"][i]["name"] + '\n';
-                        }
-                    }
-                    info_tab += '___\n';
-                    info_tab += '# Summary\ntags: ';
-                    for(var i = 0;i<module_manifest["algo_keywords"].length; i++){
-                        if(i == 0) {
-                            info_tab += module_manifest["algo_keywords"][i] + '\n';
-                        } else {
-                            info_tab += ', ' + module_manifest["algo_keywords"][i] + '\n';
-                        }
-                    }
-                    info_tab += '\nalgo_summary: You can try this algorithm here: [http://' + module_manifest["algo_name"].toLowerCase() + '.algorun.org](http://' + module_manifest["algo_name"].toLowerCase() +'.algorun.org)\n';
-                    info_tab += '___\n';
-                    info_tab += '# Description\n' + module_manifest["algo_description"].replace('<br>', '\n') + '\n';
-                    info_tab += '\nmore information: ' + module_manifest["algo_website"] + '\n';
-                    info_tab += '___\n';
-                    info_tab += '# About AlgoRun\n';
-                    info_tab += 'This algorithm is provided to you by AlgoRun. AlgoRun aims at fixing computational science reproducibility by offering an easy way to publish and use algorithms. More information on [http://algorun.org](http://algorun.org)';
-                    
-                    // Update the Parameters Tab
-                    var payload;
-                    if(jQuery.isEmptyObject(module_manifest["algo_parameters"])){
-                        // not parameter configuraion available
-                        payload = "No configuration available for this module";
-                        var param_content = '<div style="padding: 5px; text-align:center;">'+ payload+ '</div>';
-                        $("#Parameters-content").html(param_content);
-                        return info_tab;
-                    }
-                    
-                    var payload = "Parameters Configuration";
-                    node.default_params = module_manifest["algo_parameters"];
-                    
-                    // this line is to ensure that the current params on UI is the same as what is on the server.
-                    if(jQuery.isEmptyObject(node.algo_params)){
-                        node.algo_params = module_manifest["algo_parameters"];
-                        updateParams(docker_server + '/v1/config', node.algo_params,function(result){
-                            if(result === 'no such parameter'){
-                                alert("Parameter names miss-match!");
-                                node.algo_params = node.default_params;
-                                render_params();
-                            } else if (result === 'success') {
-                                //alert("Parameters saved successfully ..");
-                            } else {
-                                alert("Unexpected error occured!");
-                                node.algo_params = node.default_params;
-                                render_params();
-                            }
-                        });
-                    }
-                    
-                    // render parameters
-                    function render_params(){
-                        var params_ui = "<div><table style='width: 100%; background-color: #F2F2F2;'>";                
-                        for (var key in node.algo_params) {
-                            if (node.algo_params.hasOwnProperty(key)) {
-                                var key_id = node.id + '-' + key;
-                                var value_id = node.id + '-in-' + key;
-                                params_ui += "<tr><td style='width:50%; text-align: center;'><div id='" + key_id +"'>" + key + "    </div></td><td style='text-align: center;'><input type='text' style='width:75px; text-align: center; margin-top: 7px;' value='" + node.algo_params[key]+ "' id='" + value_id +"'></td></tr>";
-                            }
-                        }
-                        params_ui += "</table></div><br>";
-                        
-                        // render buttons
-                        params_ui += "<table style='width:100%;' id ='aaa'><tr>";
-                        params_ui += "<td style='width:50%; text-align: center;'><button id='defaults-button'style='width: 100%;'>reset defaults</button></td>";
-                        params_ui += "<td style='width:50%; text-align: center;'><button id='save-button' style='width: 100%;' >save</button>   </td>";
-                        params_ui += "</tr></table><br>";
-                        var param_content = '<div style="padding: 5px; text-align:center;">'+ payload+ '</div>';
-                        param_content += params_ui;
-                        $("#Parameters-content").html(param_content);
-                        
-                        // add actions for the buttons
-                        $('#save-button').on('click', function(){
-                            for (var key in node.algo_params) {
-                                if (node.algo_params.hasOwnProperty(key)) {
-                                    var value_id = node.id + '-in-' + key;
-                                    var new_value = document.getElementById(value_id).value;
-                                    node.algo_params[key] = new_value;
-                                }
-                            }
-                            updateParams(docker_server + '/v1/config', node.algo_params, function(result){
-                                if(result === 'no such parameter'){
-                                    alert("Parameter names miss-match!");
-                                    node.algo_params = node.default_params;
-                                    render_params();
-                                } else if (result === 'success') {
-                                    alert("Parameters saved successfully ..");
-                                    render_params();
-                                } else {
-                                    alert("Unexpected error occured!");
-                                    node.algo_params = node.default_params;
-                                    render_params();
-                                }
-                            });
-                        });
-                        
-                        $('#defaults-button').on('click', function(){
-                            node.algo_params = node.default_params;
-                            updateParams(docker_server + '/v1/config', node.algo_params, function(result){
-                                if(result === 'no such parameter'){
-                                    alert("Parameter names miss-match!");
-                                    node.algo_params = node.default_params;
-                                    render_params();
-                                } else if (result === 'success') {
-                                    alert("Parameters saved successfully ..");
-                                    render_params();
-                                } else {
-                                    alert("Unexpected error occured!");
-                                    node.algo_params = node.default_params;
-                                    render_params();
-                                }       
-                            });
-                        });
-                    }
-                    render_params();
-                    
-                    return info_tab;
-                }else{
-                    return "Double click on the node to choose an algorithm ..";
-                }
-            } else {
-                return "";
+            // if no image chosen yet, just return.
+            if(this.docker_image === "none"){
+                return "Double click on the node to choose an algorithm ..";
             }
+            // if image chosen, deploy it to the server and get endpoint
+            var deploy_result;
+            jQuery.ajax({
+                url: algomanager + '/api/v1/deploy',
+                method: 'POST',
+                data: {docker_image: node.docker_image, node_id: node.id},
+                success: function(reply) {
+                    deploy_result = reply;
+                },
+                async: false
+            });
+            
+            if(deploy_result['status'] === 'fail'){
+                return deploy_result['error_message'];
+            }
+            var algo_docker_server = deploy_result['endpoint'];
+            var module_manifest = 'unknown';
+            
+            jQuery.ajax({
+                url: algo_docker_server + '/v1/manifest',
+                success: function(result) {
+                    module_manifest = result;
+                },
+                error: function(result) {
+                    module_manifest = result;
+                },
+                async: false
+            });
+            
+            if(module_manifest === 'unknown'){
+                return 'Cannot load node info!'
+            }
+            
+            var info_tab = getInfoTab(module_manifest);
+            
+            // Update the Parameters Tab
+            var payload;
+            if(jQuery.isEmptyObject(module_manifest["algo_parameters"])){
+                // not parameter configuraion available
+                payload = "No configuration available for this module";
+                var param_content = '<div style="padding: 5px; text-align:center;">'+ payload+ '</div>';
+                $("#Parameters-content").html(param_content);
+                return info_tab;
+            }        
+            payload = "Parameters Configuration";
+            node.default_params = module_manifest["algo_parameters"];
+                    
+            // this line is to ensure that the current params on UI is the same as what is on the server.
+            if(jQuery.isEmptyObject(node.algo_params)){
+                node.algo_params = module_manifest["algo_parameters"];
+                updateParams(algo_docker_server + '/v1/config', node.algo_params,function(result){
+                    if(result === 'no such parameter'){
+                        alert("Parameter names miss-match!");
+                        node.algo_params = node.default_params;
+                        render_params();
+                    } else if (result === 'success') {
+                        //alert("Parameters saved successfully ..");
+                    } else {
+                        alert("Unexpected error occured!");
+                        node.algo_params = node.default_params;
+                        render_params();
+                    }
+                });
+            }
+                    
+            // render parameters
+            function render_params(){
+                var params_ui = "<div><table style='width: 100%; background-color: #F2F2F2;'>";                
+                for (var key in node.algo_params) {
+                    if (node.algo_params.hasOwnProperty(key)) {
+                        var key_id = node.id + '-' + key;
+                        var value_id = node.id + '-in-' + key;
+                        params_ui += "<tr><td style='width:50%; text-align: center;'><div id='" + key_id +"'>" + key + "    </div></td><td style='text-align: center;'><input type='text' style='width:75px; text-align: center; margin-top: 7px;' value='" + node.algo_params[key]+ "' id='" + value_id +"'></td></tr>";
+                    }
+                }
+                params_ui += "</table></div><br>";
+                
+                // render buttons
+                params_ui += "<table style='width:100%;' id ='aaa'><tr>";
+                params_ui += "<td style='width:50%; text-align: center;'><button id='defaults-button'style='width: 100%;'>reset defaults</button></td>";
+                params_ui += "<td style='width:50%; text-align: center;'><button id='save-button' style='width: 100%;' >save</button>   </td>";
+                params_ui += "</tr></table><br>";
+                var param_content = '<div style="padding: 5px; text-align:center;">'+ payload+ '</div>';
+                param_content += params_ui;
+                $("#Parameters-content").html(param_content);
+                        
+                // add actions for the buttons
+                $('#save-button').on('click', function(){
+                    for (var key in node.algo_params) {
+                        if (node.algo_params.hasOwnProperty(key)) {
+                            var value_id = node.id + '-in-' + key;
+                            var new_value = document.getElementById(value_id).value;
+                            node.algo_params[key] = new_value;
+                        }
+                    }
+                    updateParams(algo_docker_server + '/v1/config', node.algo_params, function(result){
+                        if(result === 'no such parameter'){
+                            alert("Parameter names miss-match!");
+                            node.algo_params = node.default_params;
+                            render_params();
+                        } else if (result === 'success') {
+                            alert("Parameters saved successfully ..");
+                            render_params();
+                        } else {
+                            alert("Unexpected error occured!");
+                            node.algo_params = node.default_params;
+                            render_params();
+                        }
+                    });
+                });
+                        
+                $('#defaults-button').on('click', function(){
+                    node.algo_params = node.default_params;
+                    updateParams(algo_docker_server + '/v1/config', node.algo_params, function(result){
+                        if(result === 'no such parameter'){
+                            alert("Parameter names miss-match!");
+                            node.algo_params = node.default_params;
+                            render_params();
+                        } else if (result === 'success') {
+                            alert("Parameters saved successfully ..");
+                            render_params();
+                        } else {
+                            alert("Unexpected error occured!");
+                            node.algo_params = node.default_params;
+                            render_params();
+                        }       
+                    });
+                });
+            }
+            render_params();
+                    
+            return info_tab;   
         },
         oneditprepare: function() {
             var node = this;
             var available_images = '<option value="none"> - choose - </option>';
-            available_images += '<option value="algorun/bnreduction">BNReduction</option>';
-            available_images += '<option value="algorun/cyclone">Cyclone</option>';
+            available_images += '<option value="algorun/discretize">Discretize</option>';
+            available_images += '<option value="algorun/basicreveng">BasicRevEng</option>';
+            available_images += '<option value="algorun/wiring-diagram">Wiring Diagram</option>';
             available_images += '<option value="algorun/react">REACT</option>';
-            available_images += '<option value="algorun/sdds">SDDS</option>';
             $('#node-input-docker_image').html(available_images);
             $('#node-input-docker_image').val(node.docker_image);
             $('#node-input-docker_image').on('change', function() {
                 node.module = $('#node-input-docker_image option:selected').text();
                 $('#module-info').html('getting module info ..');
-                if(this.value !== 'none'){
-                    var jqxhr = $.post( node.algomanager + "/api/v1/deploy", { image: this.value, node_id: node.id })
+                if(this.value === 'none'){
+                    $('#module-info').html('Select a module to display info ..');
+                    return;
+                }
+                var jqxhr = $.post(algomanager + "/api/v1/deploy", {docker_image: this.value, node_id: node.id})
                     .done(function(data,textStatus,jqXHR) {
-                        if(data['status'] === 'success'){
-                            // get description and display
-                            var docker_server = data['endpoint'];
-                            var jqxhr = $.get(docker_server + '/v1/manifest')
-                                .done(function(result) {
-                                    var manifest = result['responseText'];
-                                    manifest = stripJsonComments(manifest);
-                                    manifest = JSON.parse(manifest);
-                                    $('#module-info').html(manifest['algo_description']);
+                        if(data['status'] === 'fail'){
+                            $('#module-info').html(data['error_message']);
+                            return;
+                        }
+                        var algo_docker_server = data['endpoint'];
+                        
+                        setTimeout(showName, 500);
+                        function showName(){
+                            var jqxhr = $.get(algo_docker_server + '/v1/manifest')
+                                .done(function(manifest) {
+                                    $('#module-info').html(manifest['algo_summary']);
                                 })
-                                .fail(function(result) {
-                                    var manifest = result['responseText'];
-                                    manifest = stripJsonComments(manifest);
-                                    manifest = JSON.parse(manifest);
-                                    $('#module-info').html(manifest['algo_description']);    
-                                });
-                            
-                        } else {
-                            $('#module-info').html(data['error_message']);     
+                                .fail(function(data) {
+                                    $('#module-info').html('Press ok and deploy the node.');    
+                                });    
                         }
                     })
 	               .fail(function(data,textStatus,jqXHR) {
                         var json = JSON.stringify(data);
                         $('#module-info').html(json); 
                     });
-                }else{
-                    $('#module-info').html('Select a module to display info ..');
-                }
             });
         },
         onpaletteadd: function() {
+            // Configure AlgoManager
+            jQuery.ajax({
+                url: '/algomanager',
+                success: function(result) {
+                    algomanager = result.algomanager;
+                },
+                error: function(result) {
+                    console.err(algomanager);
+                    console.err('Cannot connect to algomanager! Check the server settings file.');
+                },
+                async: false
+            });
             var content = document.createElement("div");
             $(content).css({"position":"relative","height":"100%"});
             var toolbar = document.createElement("div");
