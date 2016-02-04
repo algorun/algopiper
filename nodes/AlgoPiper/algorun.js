@@ -34,8 +34,10 @@ module.exports = function(RED) {
                                 var deploy_result = JSON.parse(body);
                                 if(deploy_result['status'] === 'success'){
                                     var module_server = deploy_result['endpoint'];
+                                    
                                     // run computation
-                                    algo_run(module_server, input_data);
+                                    setTimeout(algo_run, 500, module_server, input_data);
+                                    // algo_run(module_server, input_data);
                                 } else {
                                     console.error(deploy_result['error_message']);
                                     node.status({fill:"red",shape:"dot",text:'docker container deployment error!'});    
