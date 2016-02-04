@@ -157,8 +157,8 @@
 
                                     '</span>';
                 }
-                if (payload.lastIndexOf('http', 0) === 0){
-                    payload = "<a href=" + payload+ " target='_blank'>" + payload + "</a>";
+                if (payload.lastIndexOf('/workflow-log', 0) === 0){
+                    payload = "<a href=" + payload+ " target='_blank'>open log file</a>";
                 }
                 msg.innerHTML += '<span class="OUTPUT-message-payload">'+ payload+ '</span>';
                 var atBottom = (sbc.scrollHeight-messages.offsetHeight-sbc.scrollTop) < 5;
