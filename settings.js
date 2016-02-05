@@ -20,7 +20,7 @@
 
 module.exports = {
     // the tcp port that the Node-RED web server is listening on
-    uiPort: 1880,
+    uiPort: 8765,
 
     // By default, the Node-RED UI accepts connections on all IPv4 interfaces.
     // The following property can be used to listen on a specific interface. For
@@ -44,7 +44,7 @@ module.exports = {
     debugMaxLength: 1000,
 
     // The file containing the flows. If not set, it defaults to flows_<hostname>.json
-    //flowFile: 'flows.json',
+    flowFile: 'flows.json',
 
     // To enabled pretty-printing of the flow within the flow file, set the following
     //  property to true:
@@ -65,7 +65,7 @@ module.exports = {
 
     // You can protect the user interface with a userid and password by using the following property.
     // The password must be an md5 hash  eg.. 5f4dcc3b5aa765d61d8327deb882cf99 ('password')
-    adminAuth: {
+    /*adminAuth: {
 	sessionExpiryTime: 86400,
     	type: "credentials",
     	users: [{
@@ -77,7 +77,7 @@ module.exports = {
 	        password: "$2a$08$pdbvKbw3vCCgf7uaSCrs0enN0fuynpNU2MKyuJqEZDDwWWhVgKZkC",
 	        permissions: "*"
 	    }]
-    },
+    },*/
 
     // Some nodes, such as HTTP In, can be used to listen for incoming http requests.
     // By default, these are served relative to '/'. The following property
