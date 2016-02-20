@@ -25,7 +25,7 @@ npm install
 
 ADD red.js /
 ADD settings.js /
-ADD README.md /
+ADD sample-flow.json /
 ADD ./bin /bin/
 ADD ./editor /editor
 ADD ./locales /locales
@@ -35,4 +35,4 @@ ADD ./red /red
 ADD ./test /test
 
 EXPOSE 8765
-ENTRYPOINT ["/usr/bin/nodejs","red.js"]
+ENTRYPOINT ["/usr/bin/nodejs","red.js", "sample-flow.json"]

@@ -157,6 +157,7 @@
 
                                     '</span>';
                 }
+                payload = payload.replace(/(?:\r\n|\r|\n)/g, '<br>');
                 if (payload.lastIndexOf('/workflow-log', 0) === 0){
                     payload = "<a href=" + payload+ " target='_blank'>open log file</a>";
                 }

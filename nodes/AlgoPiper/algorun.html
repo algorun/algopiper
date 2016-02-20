@@ -151,7 +151,7 @@
             var module_manifest = node.manifest;
             
             if(module_manifest == undefined){
-                return 'Cannot load node info! Double click on the node to re-deploy its AlgoRun container.'
+                return 'Oppss! AlgoPiper cannot load node info! Double click on the node to try getting info again ..'
             }
             
             var info_tab = getInfoTab(module_manifest);
@@ -287,7 +287,7 @@
                                     node.manifest = manifest;
                                 })
                                 .fail(function(data) {
-                                    $('#module-info').html('Press ok and deploy the node.');    
+                                    $('#module-info').html('Press ok and deploy the workflow ..');    
                                 });    
                         }
                     })
@@ -298,6 +298,7 @@
             });
         },
         onpaletteadd: function() {
+            
             // Configure AlgoManager
             var jqxhr = $.get("/algomanager")
                     .done(function(data,textStatus,jqXHR) {

@@ -22,6 +22,7 @@
 -->
 <head>
 <title>{{ page.title }}</title>
+<link href="vendor/intro/css/introjs.css" rel="stylesheet">
 <link rel="icon" type="image/png" href="{{ page.favicon }}">
 <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen">
 <link href="vendor/jquery/css/smoothness/jquery-ui-1.10.3.custom.min.css" rel="stylesheet" media="screen">
@@ -172,10 +173,87 @@
     </div>
 </script>
 
+<script type="text/javascript" src="vendor/intro/js/intro.js"></script>
 <script src="vendor/vendor.js"></script>
 <script src="vendor/ace/ace.js"></script>
 <script src="vendor/ace/ext-language_tools.js"></script>
 <script src="{{ asset.red }}"></script>
-
+<script>
+var intro = introJs();
+intro.setOptions({
+    steps: [
+        { 
+            intro: "<div style='text-align: center'>Howdy! I'm <b>AlgoPiper</b> <br> The Graphical Tool for Creating Workflows!</div>"
+        },
+        { 
+            intro: "This is a step-by-step guide to start building your first workflow. You can skip the tour at any time .."
+        },
+        {
+            element: document.querySelector('#workspace'),
+            intro: "This is your main workspace where you will build and run your workflows ..",
+            position: 'right'
+        },
+        {
+            element: document.querySelector('#workspace-tabs'),
+            intro: "Multiple tabs = multiple workflows in the same window.<br>Double click to rename a workflow .."
+        },
+        {
+            element: document.querySelector('#workspace-add-tab'),
+            intro: "Add more tabs (workflows) .."
+        },
+        {
+            element: document.querySelector('#palette'),
+            intro: "A list of all available nodes that can be added to a workflow ..",
+            position: 'right'
+        },
+        {
+            element: document.querySelector('#palette-search'),
+            intro: "Search nodes by name ..",
+            position: 'right'
+        },
+        {
+            element: document.querySelector('#palette-container'),
+            intro: "Do you see the <span style='color: #58FA82'><b>AlgoRun</b></span> node?<br> AlgoRun node includes ready-to-use algorithms from <a href='http://algorun.org/browse' target='_blank'>AlgoRun website</a> ..",
+            position: 'right'
+        },
+        {
+            element: document.querySelector('#chart'),
+            intro: "Drag and drop AlgoRun nodes to the workspace. Double click on a node to select from available algorithms ..",
+            position: 'right'
+        },
+        {
+            element: document.querySelector('#sidebar'),
+            intro: "Detailed description of the selected algorithm appears in the <b>info</b> tab ..",
+            position: 'left'
+        },
+        {
+            element: document.querySelector('#sidebar-tabs'),
+            intro: "You can change algorithm parameters from <b>Parameters</b> tab. <b>OUTPUT</b> tab prints workflow output. <b>debug</b> tab prints debugging information ..",
+            position: 'left'
+        },
+        {
+            intro: "Connect nodes together ..<br><br> <img src='vendor/intro/connect-workflow.gif'></img>"
+        },
+        {
+            intro: "Double click on INPUT node to edit the input data ..<br><br> <img src='vendor/intro/edit-input.png'></img>"
+        },
+        {
+            element: document.querySelector('#header'),
+            intro: "<b>Deploy</b> a workflow before running it ..",
+            position: 'bottom-right-aligned'
+        },
+        {
+            intro: "<b>Run</b> a workflow by clicking on the button on the left of the INPUT node ..<br><br> <img src='vendor/intro/run-workflow.png'></img>"
+        },
+        {
+            intro: "<div style='text-align: center'>Happy Workflowing :)<br>Check <a href='http://algorun.org/algopiper'>AlgoPiper website</a> for more examples ..</div>"
+        }
+        
+    ],
+    exitOnOverlayClick: true,
+    exitOnEsc: true
+});
+intro.start();
+</script>
 </body>
 </html>
