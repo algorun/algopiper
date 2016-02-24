@@ -113,6 +113,8 @@
         defaults: {
             module: {value:""},
             docker_image: {value: "none"},
+            algo_docker_server: {value: undefined},
+            module_manifest: {value: undefined},
             algo_params: {value:{}},
             defaults_params: {value:{}}
         },
@@ -129,29 +131,16 @@
             var node = this;
             
             // if no image chosen yet, just return.
-            if(this.docker_image === "none"){
+            if(node.docker_image === "none"){
                 return "Double click on the node to choose an algorithm ..";
             }
-            // if image chosen, deploy it to the server and get endpoint
-            var deploy_result;
-            jQuery.ajax({
-                url: algomanager + '/api/v1/deploy',
-                method: 'POST',
-                data: {docker_image: node.docker_image, node_id: node.id},
-                success: function(reply) {
-                    deploy_result = reply;
-                },
-                async: false
-            });
             
-            if(deploy_result['status'] === 'fail'){
-                return deploy_result['error_message'];
-            }
-            var algo_docker_server = deploy_result['endpoint'];
+            // check that the node already deployed.
+            var algo_docker_server = node.algo_docker_server;
             var module_manifest = node.manifest;
             
             if(module_manifest == undefined){
-                return 'Oppss! AlgoPiper cannot load node info! Double click on the node to try getting info again ..'
+                return 'Double click on the node to load info ..';
             }
             
             var info_tab = getInfoTab(module_manifest);
@@ -278,8 +267,9 @@
                             return;
                         }
                         var algo_docker_server = data['endpoint'];
+                        node.algo_docker_server = algo_docker_server;
                         
-                        setTimeout(showName, 500);
+                        setTimeout(showName, 1000);
                         function showName(){
                             var jqxhr = $.get(algo_docker_server + '/v1/manifest')
                                 .done(function(manifest) {
@@ -287,7 +277,8 @@
                                     node.manifest = manifest;
                                 })
                                 .fail(function(data) {
-                                    $('#module-info').html('Press ok and deploy the workflow ..');    
+                                    $('#module-info').html('still getting module info ..');    
+                                    setTimeout(showName, 1000);
                                 });    
                         }
                     })
@@ -342,13 +333,13 @@
 <script type="text/x-red" data-template-name="AlgoRun">
     <div class="form-row">
         <label for="node-input-docker_image"><i class="icon-tag"></i> Module</label>
-        <select id="node-input-docker_image" style="width:73%">
-          
+        <select id="node-input-docker_image" style="width:73%">        
         </select>
+
     </div>
     <div class="form-tips" id="module-info">Select a module to display info ..</div>
 </script>
 
 <script type="text/x-red" data-help-name="AlgoRun">
-    <p>A custom node to use AlgoRun algorithms</p>
+    <p>A node to use AlgoRun algorithms</p>
 </script>
