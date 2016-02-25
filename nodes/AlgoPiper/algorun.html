@@ -1,3 +1,5 @@
+<script type="text/javascript" src="vendor/intro/js/intro.js"></script>
+
 <script type="text/javascript">
     var singleComment = 1;
     var multiComment = 2;
@@ -244,6 +246,25 @@
             return info_tab;   
         },
         oneditprepare: function() {
+            var intro = introJs();
+            intro.setOptions({
+                steps: [
+                    {
+                        intro: "Choose <b>Bowtie</b> from the list and hit ok ..",
+                        position: "top"
+                    }    
+                ],
+                showStepNumbers: false,
+                exitOnOverlayClick: true,
+                exitOnEsc: true
+            });
+            
+            // check here to see if we want to play this intro or not
+            $.get( "/guide?", function( data ) {
+                if(data['guide'] == true){
+                    intro.start();    
+                }
+            });
             var node = this;
             // prepare the list
             var available_images = '<option value="none"> - choose - </option>';
@@ -286,6 +307,92 @@
                         var json = JSON.stringify(data);
                         $('#module-info').html(json); 
                     });
+            });
+        },
+        oneditsave: function(){
+            var node = this;
+            var intro = introJs();
+            intro.setOptions({
+                steps: [
+                    {
+                        element: document.querySelector('#sidebar'),
+                        intro: "<b>There you go!</b><br>Detailed information of the selected node appears in the <b>info</b> tab ..",
+                        position: 'left'
+                    },
+                    {
+                        element: document.querySelector('#header'),
+                        intro: "<div style='text-align: center'>Now, hit <span style='color: #6E0A1E'>Deploy</span> ..</div>",
+                        position: 'bottom-right-aligned'
+                    }    
+                ],
+                showStepNumbers: false,
+                exitOnOverlayClick: true,
+                exitOnEsc: true
+            });
+            intro.oncomplete(function() {
+                $('#btn-deploy').click(showRun);
+                function showRun(){
+                    var run = introJs();
+                    run.setOptions({
+                        steps: [
+                            {
+                                intro: "<div style='text-align: center'><b>Good job!</b><br>Run the workflow now by hitting the small button on the left of the INPUT node ..</div>"
+                            }    
+                        ],
+                        showStepNumbers: false,
+                        exitOnOverlayClick: true,
+                        exitOnEsc: true
+                    });
+                    run.oncomplete(function(){
+                        $('.node_button_button').click(function(){
+                            setTimeout(showOutput, 2000);
+                        });
+                    });
+                    run.start();
+                    function showOutput(){
+                        var out = introJs();
+                        out.setOptions({
+                            steps: [
+                                {
+                                    intro: "<div style='text-align: center'>Open the OUTPUT tab on the right sidebar to see the result of the computation ..</div>"
+                                }
+                            ],
+                            showStepNumbers: false,
+                            exitOnOverlayClick: true,
+                            exitOnEsc: true
+                        });
+                        out.oncomplete(function(){
+                            $( "a[title='OUTPUT']" ).click(function(){setTimeout(sayCongrats, 3000)});
+                            function sayCongrats(){
+                                var congrats = introJs();
+                                congrats.setOptions({
+                                    steps: [
+                                        {
+                                            intro: "<div style='text-align: center'><img src='vendor/intro/congrats.gif'></img><br><br>YOU DID IT!<br>Happy Workflowing :)<br><br> AlgoPiper Team</div>"
+                                        }
+                                    ],
+                                    showStepNumbers: false,
+                                    exitOnOverlayClick: true,
+                                    exitOnEsc: true
+                                });
+                                congrats.start();
+                                // stop the guide
+                                $.get( "/guide?stop=yes", function( data ) {});
+                                $('#btn-deploy').unbind( "click" );
+                                $('.node_button_button').unbind( "click" );
+                                $("#a[title='OUTPUT']").unbind( "click" );
+                            }
+                        });
+                        out.start();
+                    }
+                }
+            });
+            
+            // check here if we want to play this intro or not
+            $.get( "/guide?", function( data ) {
+                if(data['guide'] == true){
+                    intro.start();    
+                }
             });
         },
         onpaletteadd: function() {
@@ -331,7 +438,7 @@
 </script>
 
 <script type="text/x-red" data-template-name="AlgoRun">
-    <div class="form-row">
+    <div class="form-row" id="choose-algorithm">
         <label for="node-input-docker_image"><i class="icon-tag"></i> Module</label>
         <select id="node-input-docker_image" style="width:73%">        
         </select>

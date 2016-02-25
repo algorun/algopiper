@@ -13,7 +13,7 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
-
+<script type="text/javascript" src="vendor/intro/js/intro.js"></script>
 <script type="text/x-red" data-template-name="INPUT">
     <div class="form-row" style="text-align: center;">
         <label for="node-input-data">INPUT</label>
@@ -34,6 +34,7 @@
 </script>
 
 <script type="text/javascript">
+    var first_drag = true;
     RED.nodes.registerType('INPUT',{
         category: 'input',
         color:"#a6bbcf",
@@ -46,6 +47,24 @@
         label: "INPUT",
         paletteLabel: "INPUT",
         oneditprepare: function() {
+            var intro = introJs();
+            intro.setOptions({
+                steps: [
+                    {
+                        intro: "Copy and paste the following string:<br><i>ATGCATCATGCGCCAT</i><br>into the textbox and hit ok ..",
+                    }    
+                ],
+                showStepNumbers: false,
+                exitOnOverlayClick: true,
+                exitOnEsc: true
+            });
+            
+            // check here to see if we want to play this intro or not
+            $.get( "/guide?", function( data ) {
+                if(data['guide'] == true){
+                    intro.start();    
+                }
+            });
             var that = this;
             $( "#node-input-outputs" ).spinner({
                 min:1
@@ -118,6 +137,24 @@
             }
             $("#node-input-data").val(this.editor.getValue());
             delete this.editor;
+            
+            var intro = introJs();
+            intro.setOptions({
+                steps: [
+                    {
+                        intro: "<div style='text-align: center'><b>Yay! way to go</b><br>Now, double click on the AlgoRun node to choose an algorithm ..</div>",
+                    }    
+                ],
+                showStepNumbers: false,
+                exitOnOverlayClick: true,
+                exitOnEsc: true
+            });
+            // check here to see if we want to play this intro or not
+            $.get( "/guide?", function( data ) {
+                if(data['guide'] == true){
+                    intro.start();    
+                }
+            });
         },
         button: {
             onclick: function() {

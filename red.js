@@ -27,13 +27,26 @@ var log = require("./red/log");
 
 var server;
 var app = express();
+var guide = true;
 
 app.get('/algomanager', function(req, res){
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Headers", "X-Requested-With");
-
-    res.status = 500;
+    
+    res.status = 200;
     res.send({'algomanager': settings.algomanager});
+    return;
+});
+app.get('/guide', function(req, res){
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "X-Requested-With");
+
+    if(req.query.stop != undefined){
+        guide = false;
+    }
+    
+    res.status = 200;
+    res.send({'guide': guide});
     return;
 });
 var settingsFile;

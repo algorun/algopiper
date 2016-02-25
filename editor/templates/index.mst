@@ -179,6 +179,7 @@
 <script src="vendor/ace/ext-language_tools.js"></script>
 <script src="{{ asset.red }}"></script>
 <script>
+
 var intro = introJs();
 intro.setOptions({
     steps: [
@@ -212,46 +213,44 @@ intro.setOptions({
             position: 'right'
         },
         {
+            element: document.querySelector('#sidebar'),
+            intro: "Detailed information of the selected node appears in the <b>info</b> tab ..",
+            position: 'left'
+        },
+        { 
+            intro: "<div style='text-align: center; font-size: 150%'>Let's build a workflow together ..</div>"
+        },
+        {
             element: document.querySelector('#palette-container'),
             intro: "Do you see the <span style='color: #58FA82'><b>AlgoRun</b></span> node?<br> AlgoRun node includes ready-to-use algorithms from <a href='http://algorun.org/browse' target='_blank'>AlgoRun website</a> ..",
             position: 'right'
         },
         {
-            element: document.querySelector('#chart'),
-            intro: "Drag and drop AlgoRun nodes to the workspace. Double click on a node to select from available algorithms ..",
+            element: document.querySelector('#palette-container'),
+            intro: "Now, drag and drop an <span style='color: #58FA82'><b>AlgoRun</b></span> node to the center of workspace ..",
             position: 'right'
         },
         {
-            element: document.querySelector('#sidebar'),
-            intro: "Detailed description of the selected algorithm appears in the <b>info</b> tab ..",
-            position: 'left'
+            element: document.querySelector('#palette-container'),
+            intro: "<b>Awesome!</b><br> An algorithm will need some input. Right? Drag and drop an <span style='color: #A6BBCF'><b>INPUT</b></span> node to the left of the AlgoRun node ..",
+            position: 'right'
         },
         {
-            element: document.querySelector('#sidebar-tabs'),
-            intro: "You can change algorithm parameters from <b>Parameters</b> tab. <b>OUTPUT</b> tab prints workflow output. <b>debug</b> tab prints debugging information ..",
-            position: 'left'
+            element: document.querySelector('#palette-container'),
+            intro: "<b>Great!</b><br> You will need to print the result after the computation. Drag and drop an <span style='color: #87A980'><b>OUTPUT</b></span> node to the right of the AlgoRun node ..",
+            position: 'right'
         },
         {
-            intro: "Connect nodes together ..<br><br> <img src='vendor/intro/connect-workflow.gif'></img>"
-        },
-        {
-            intro: "Double click on INPUT node to edit the input data ..<br><br> <img src='vendor/intro/edit-input.png'></img>"
-        },
-        {
-            element: document.querySelector('#header'),
-            intro: "<b>Deploy</b> a workflow before running it ..",
-            position: 'bottom-right-aligned'
-        },
-        {
-            intro: "<b>Run</b> a workflow by clicking on the button on the left of the INPUT node ..<br><br> <img src='vendor/intro/run-workflow.png'></img>"
-        },
-        {
-            intro: "<div style='text-align: center'>Happy Workflowing :)<br>Check <a href='http://algorun.org/algopiper'>AlgoPiper website</a> for more examples ..</div>"
+            intro: "<b>Amazing!</b><br> Let's connect the nodes ..<br><br> <img src='vendor/intro/connect-workflow.gif'></img><br><br>Now, dismiss this message and <b>connect</b> the nodes. After that, <b>double click</b> on the input node to provide input ..",
         }
-        
     ],
-    exitOnOverlayClick: true,
-    exitOnEsc: true
+    exitOnEsc: true,
+    showStepNumbers: false
+});
+intro.onexit(function(){
+    // somehow store that the user has cancelled the tutorial so no other window appears.
+    $.get( "/guide?stop=yes", function( data ) {
+    });
 });
 intro.start();
 </script>
