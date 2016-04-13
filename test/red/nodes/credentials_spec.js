@@ -166,7 +166,7 @@ describe('Credentials', function() {
     });
     
     it('credential type is not registered when extract', function(done) {
-        var testFlows = [{"type":"test","id":"tab1","label":"Workflow 1"}];
+        var testFlows = [{"type":"test","id":"tab1","label":"Pipeline 1"}];
         var storage = {
                 getFlows: function() {
                     var defer = when.defer();

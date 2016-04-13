@@ -9,7 +9,7 @@
         }
     },
     "workspace": {
-        "defaultName": "Workflow __number__",
+        "defaultName": "Pipeline __number__",
         "renameSheet": "Rename sheet",
         "confirmDelete": "Confirm delete",
         "delete": "Are you sure you want to delete '__label__'?",

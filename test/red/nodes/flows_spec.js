@@ -62,7 +62,7 @@ describe('flows', function() {
         });
 
         it('should load and start an empty tab flow',function(done) {
-            loadFlows([{"type":"tab","id":"tab1","label":"Workflow 1"}], function() {});
+            loadFlows([{"type":"tab","id":"tab1","label":"Pipeline 1"}], function() {});
             events.once('nodes-started', function() { done(); });
         });
 

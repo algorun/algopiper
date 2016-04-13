@@ -14,7 +14,7 @@ credentials.json
 flows*.json
 locales/zz-ZZ
 nodes/core/locales/zz-ZZ
-workflow-log
+pipeline-log
 calling workflows
 node_modules
 .brackets.json

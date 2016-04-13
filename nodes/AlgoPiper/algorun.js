@@ -15,7 +15,7 @@ module.exports = function(RED) {
         var node = this;
         var docker_image = config.docker_image;
         var docker_server = "";
-        var log_file = 'workflow-log/' + node.id + '.json';
+        var log_file = 'pipeline-log/' + node.id + '.json';
         var module_msg;
         
         node.status({fill:"green", shape:"dot", text:"ready"});        

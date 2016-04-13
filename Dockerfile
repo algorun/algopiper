@@ -1,5 +1,5 @@
 #    AlgoPiper: a visual tool to create modular, reusable and distributed
-#    computational workflows - Copyright (C) 2015 Thibauld Favre <tfavre@gmail.com>
+#    computational pipelines - Copyright (C) 2015 Thibauld Favre <tfavre@gmail.com>
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@ apt-get install -y nodejs npm nodejs-legacy && \
 apt-get clean && \
 rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 ADD package.json /
-RUN mkdir workflow-log && \
+RUN mkdir pipeline-log && \
 npm install
 
 ADD red.js /
