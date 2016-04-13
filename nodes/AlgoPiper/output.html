@@ -158,7 +158,7 @@
                                     '</span>';
                 }
                 payload = payload.replace(/(?:\r\n|\r|\n)/g, '<br>');
-                if (payload.lastIndexOf('/workflow-log', 0) === 0){
+                if (payload.lastIndexOf('/pipeline-log', 0) === 0){
                     payload = "<a href=" + payload+ " target='_blank'>open log file</a>";
                 }
                 msg.innerHTML += '<span class="OUTPUT-message-payload">'+ payload+ '</span>';

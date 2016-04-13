@@ -78,7 +78,7 @@ module.exports = function(RED) {
                         });
                             
                         var file_path = "/" + log_file;
-                        sendDebug({id:node.id,name:"Custom LOG",topic:"computation result", msg:file_path, _path:module_msg._path});
+                        sendDebug({id:node.id,name:"algorun log",topic:"computation result", msg:file_path, _path:module_msg._path});
                         
                         node.send(module_msg);
                         node.status({fill:"green",shape:"dot",text:"ready .."});
@@ -86,7 +86,7 @@ module.exports = function(RED) {
                         } else {
                             module_msg.payload = error;
                             node.send(module_msg);
-                            node.status({fill:"red",shape:"dot",text:"Please, run again!"});
+                            node.status({fill:"red",shape:"dot",text:"please, run again!"});
                         }
                     });
         }
