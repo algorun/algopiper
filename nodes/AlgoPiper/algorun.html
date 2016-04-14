@@ -147,16 +147,16 @@
             
             var info_tab = getInfoTab(module_manifest);
             
-            // Update the Parameters Tab
+            // Update the parameters Tab
             var payload;
             if(jQuery.isEmptyObject(module_manifest["algo_parameters"])){
                 // not parameter configuraion available
                 payload = "No configuration available for this module";
                 var param_content = '<div style="padding: 5px; text-align:center;">'+ payload+ '</div>';
-                $("#Parameters-content").html(param_content);
+                $("#parameters-content").html(param_content);
                 return info_tab;
             }        
-            payload = "Parameters Configuration";
+            payload = "parameters Configuration";
             node.default_params = module_manifest["algo_parameters"];
                     
             // this line is to ensure that the current params on UI is the same as what is on the server.
@@ -168,7 +168,7 @@
                         node.algo_params = node.default_params;
                         render_params();
                     } else if (result === 'success') {
-                        //alert("Parameters saved successfully ..");
+                        //alert("parameters saved successfully ..");
                     } else {
                         alert("Unexpected error occured!");
                         node.algo_params = node.default_params;
@@ -178,13 +178,15 @@
             }
                     
             // render parameters
+            
             function render_params(){
                 var params_ui = "<div><table style='width: 100%; background-color: #F2F2F2;'>";                
                 for (var key in node.algo_params) {
                     if (node.algo_params.hasOwnProperty(key)) {
-                        var key_id = node.id + '-' + key;
-                        var value_id = node.id + '-in-' + key;
-                        params_ui += "<tr><td style='width:50%; text-align: center;'><div id='" + key_id +"'>" + key + "    </div></td><td style='text-align: center;'><input type='text' style='width:75px; text-align: center; margin-top: 7px;' value='" + node.algo_params[key]+ "' id='" + value_id +"'></td></tr>";
+                        var key_id = node.id + '_' + key;
+                        var value_id = node.id + '_in_' + key;
+                        //params_ui += "<tr><td style='width:50%; text-align: center;'><div id='" + key_id +"'>" + key + "</div></td><td style='text-align: center;'><input type='text' style='width:75px; text-align: center; margin-top: 7px;' value='" + node.algo_params[key]+ "' id='" + value_id +"'></td></tr>";
+                        params_ui += "<tr><td style='width:50%; text-align: center;'><div id='" + key_id +"'>" + key + "</div></td><td style='text-align: center;'><textarea rows='1' cols='10' style='width:75px; text-align: center; margin-top: 7px;' id='" + value_id + "'>" + node.algo_params[key]+ "</textarea></td></tr>";
                     }
                 }
                 params_ui += "</table></div><br>";
@@ -196,13 +198,15 @@
                 params_ui += "</tr></table><br>";
                 var param_content = '<div style="padding: 5px; text-align:center;">'+ payload+ '</div>';
                 param_content += params_ui;
-                $("#Parameters-content").html(param_content);
-                        
+                $("#parameters-content").html(param_content);
+                $("textarea").on('focus', function(){
+                    // try to deselect the node
+                });        
                 // add actions for the buttons
                 $('#save-button').on('click', function(){
                     for (var key in node.algo_params) {
                         if (node.algo_params.hasOwnProperty(key)) {
-                            var value_id = node.id + '-in-' + key;
+                            var value_id = node.id + '_in_' + key;
                             var new_value = document.getElementById(value_id).value;
                             node.algo_params[key] = new_value;
                         }
@@ -213,7 +217,7 @@
                             node.algo_params = node.default_params;
                             render_params();
                         } else if (result === 'success') {
-                            alert("Parameters saved successfully ..");
+                            alert("parameters saved successfully ..");
                             render_params();
                         } else {
                             alert("Unexpected error occured!");
@@ -231,7 +235,7 @@
                             node.algo_params = node.default_params;
                             render_params();
                         } else if (result === 'success') {
-                            alert("Parameters saved successfully ..");
+                            alert("parameters saved successfully ..");
                             render_params();
                         } else {
                             alert("Unexpected error occured!");
@@ -290,16 +294,19 @@
                         var algo_docker_server = data['endpoint'];
                         node.algo_docker_server = algo_docker_server;
                         
+                        var still_working = "still getting algorithm info ";
                         setTimeout(showName, 1000);
                         function showName(){
                             var jqxhr = $.get(algo_docker_server + '/v1/manifest')
                                 .done(function(manifest) {
                                     $('#module-info').html(manifest['algo_summary']);
                                     node.manifest = manifest;
+                                    still_working = "still getting algorithm info ";
                                 })
                                 .fail(function(data) {
-                                    $('#module-info').html('still getting module info ..');    
+                                    $('#module-info').html(still_working);    
                                     setTimeout(showName, 1000);
+                                    still_working += '.';
                                 });    
                         }
                     })
@@ -354,7 +361,7 @@
                         out.setOptions({
                             steps: [
                                 {
-                                    intro: "<div style='text-align: center'>Open the OUTPUT tab on the right sidebar to see the result of the computation ..</div>"
+                                    intro: "<div style='text-align: center'>Open the outpuy tab on the right sidebar to see the result of the computation ..</div>"
                                 }
                             ],
                             showStepNumbers: false,
@@ -362,7 +369,7 @@
                             exitOnEsc: true
                         });
                         out.oncomplete(function(){
-                            $( "a[title='OUTPUT']" ).click(function(){setTimeout(sayCongrats, 3000)});
+                            $( "a[title='output']" ).click(function(){setTimeout(sayCongrats, 3000)});
                             function sayCongrats(){
                                 var congrats = introJs();
                                 congrats.setOptions({
@@ -380,7 +387,7 @@
                                 $.get( "/guide?stop=yes", function( data ) {});
                                 $('#btn-deploy').unbind( "click" );
                                 $('.node_button_button').unbind( "click" );
-                                $("#a[title='OUTPUT']").unbind( "click" );
+                                $("#a[title='output']").unbind( "click" );
                             }
                         });
                         out.start();
@@ -416,23 +423,23 @@
             var content = document.createElement("div");
             $(content).css({"position":"relative","height":"100%"});
             var toolbar = document.createElement("div");
-            toolbar.id = "Parameters-toolbar";
+            toolbar.id = "parameters-toolbar";
             content.appendChild(toolbar);
 
             var messages = document.createElement("div");
-            messages.id = "Parameters-content";
+            messages.id = "parameters-content";
             content.appendChild(messages);
 
             RED.sidebar.addTab({
-                id: "Parameters",
-                label: "Parameters",
-                name: "Parameters",
+                id: "parameters",
+                label: "parameters",
+                name: "parameters",
                 content: content
             });
         },
         onpaletteremove: function() {
-            RED.comms.unsubscribe("Parameters",this.handleDebugMessage);
-            RED.sidebar.removeTab("Parameters");
+            RED.comms.unsubscribe("parameters",this.handleDebugMessage);
+            RED.sidebar.removeTab("parameters");
         }
     });
 </script>

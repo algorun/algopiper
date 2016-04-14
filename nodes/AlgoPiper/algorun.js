@@ -4,10 +4,15 @@ module.exports = function(RED) {
     var os = require("os");
     var request = require('request');
     var settings = require('../../settings.js');
-    var algomanager = settings.algomanager;
-    
+    var algomanager;
+    // Configure AlgoManager
+    request('http://localhost:8765/algomanager', function (error, response, body) {
+        if (!error && response.statusCode == 200) {
+            algomanager = JSON.parse(body).algomanager;
+        }
+    });
     function sendDebug(msg) {
-        RED.comms.publish("OUTPUT", msg);
+        RED.comms.publish("output", msg);
     }
     
     function ModuleNode(config) {

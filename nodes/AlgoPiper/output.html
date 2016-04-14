@@ -14,23 +14,23 @@
   limitations under the License.
 -->
 
-<script type="text/x-red" data-template-name="OUTPUT">
+<script type="text/x-red" data-template-name="output">
     
 </script>
 
-<script type="text/x-red" data-help-name="OUTPUT">
-    <p>This node can be connected to the output of any node. It can be used to display the output of AlgoPiper pipelines in the OUTPUT tab of the sidebar</p>
+<script type="text/x-red" data-help-name="output">
+    <p>This node can be connected to the output of any node. It can be used to display the output of AlgoPiper pipelines in the output tab of the sidebar</p>
 </script>
 
 <script type="text/javascript">
-    RED.nodes.registerType('OUTPUT',{
+    RED.nodes.registerType('output',{
         category: 'input',
         defaults: {
             active: {value:true},
             console: {value:"false"},
             complete: {value:"false", required:true}
         },
-        label: "OUTPUT",
+        label: "output",
         color:"#87a980",
         inputs:1,
         outputs:0,
@@ -39,16 +39,16 @@
         button: {
             toggle: "active",
             onclick: function() {
-                var label = this.name||"OUTPUT";
+                var label = this.name||"output";
                 var node = this;
                 $.ajax({
-                    url: "OUTPUT/"+this.id+"/"+(this.active?"enable":"disable"),
+                    url: "output/"+this.id+"/"+(this.active?"enable":"disable"),
                     type: "POST",
                     success: function(resp, textStatus, xhr) {
                         if (xhr.status == 200) {
-                            RED.notify(node._("OUTPUT.notification.activated",{label:label}),"success");
+                            RED.notify(node._("output.notification.activated",{label:label}),"success");
                         } else if (xhr.status == 201) {
-                            RED.notify(node._("OUTPUT.notification.deactivated",{label:label}),"success");
+                            RED.notify(node._("output.notification.deactivated",{label:label}),"success");
                         }
                     },
                     error: function(jqXHR,textStatus,errorThrown) {
@@ -67,19 +67,19 @@
             var content = document.createElement("div");
             $(content).css({"position":"relative","height":"100%"});
             var toolbar = document.createElement("div");
-            toolbar.id = "OUTPUT-toolbar";
+            toolbar.id = "output-toolbar";
             content.appendChild(toolbar);
 
-            toolbar.innerHTML = '<div class="pull-right"><a id="OUTPUT-tab-clear" title="clear log" class="button" href="#"><i class="fa fa-trash"></i></a></div> ';
+            toolbar.innerHTML = '<div class="pull-right"><a id="output-tab-clear" title="clear log" class="button" href="#"><i class="fa fa-trash"></i></a></div> ';
 
             var messages = document.createElement("div");
-            messages.id = "OUTPUT-content";
+            messages.id = "output-content";
             content.appendChild(messages);
 
             RED.sidebar.addTab({
-                id: "OUTPUT",
-                label: "OUTPUT",
-                name: "OUTPUT",
+                id: "output",
+                label: "output",
+                name: "output",
                 content: content
             });
 
@@ -88,13 +88,13 @@
                 return d.toLocaleString();
             }
 
-            var sbc = document.getElementById("OUTPUT-content");
+            var sbc = document.getElementById("output-content");
 
             var messageCount = 0;
             var that = this;
             RED._debug = function(msg) {
                 that.handleDebugMessage("",{
-                    name:"OUTPUT",
+                    name:"output",
                     msg:msg
                 });
             }
@@ -135,10 +135,10 @@
                 var payload = sanitize((o.msg||"").toString());
                 var format = sanitize((o.format||"").toString());
 
-                msg.className = 'OUTPUT-message'+(o.level?(' OUTPUT-message-level-'+o.level):'');
-                msg.innerHTML = '<span class="OUTPUT-message-date">'+
+                msg.className = 'output-message'+(o.level?(' output-message-level-'+o.level):'');
+                msg.innerHTML = '<span class="output-message-date">'+
                                 getTimestamp()+'</span>'+
-                                (name?'<span class="OUTPUT-message-name">['+name+']':'')+
+                                (name?'<span class="output-message-name">['+name+']':'')+
                                 '</span>';
                 // NOTE: relying on function error to have a "type" that all other msgs don't
                 if (o.hasOwnProperty("type") && (o.type === "function")) {
@@ -148,10 +148,10 @@
                         errorLvl = 30;
                         errorLvlType = 'warn';
                     }
-                    msg.className = 'OUTPUT-message OUTPUT-message-level-' + errorLvl;
-                    msg.innerHTML += '<span class="OUTPUT-message-topic">[function] : (' + errorLvlType + ')</span>';
+                    msg.className = 'output-message output-message-level-' + errorLvl;
+                    msg.innerHTML += '<span class="output-message-topic">[function] : (' + errorLvlType + ')</span>';
                 } else {
-                    msg.innerHTML += '<span class="OUTPUT-message-topic">'+
+                    msg.innerHTML += '<span class="output-message-topic">'+
                                     (o.topic?topic+' : ':'')+
                                     (o.property?'[msg.'+property+']':'[msg]')+" : "+format+
 
@@ -161,23 +161,23 @@
                 if (payload.lastIndexOf('/pipeline-log', 0) === 0){
                     payload = "<a href=" + payload+ " target='_blank'>open log file</a>";
                 }
-                msg.innerHTML += '<span class="OUTPUT-message-payload">'+ payload+ '</span>';
+                msg.innerHTML += '<span class="output-message-payload">'+ payload+ '</span>';
                 var atBottom = (sbc.scrollHeight-messages.offsetHeight-sbc.scrollTop) < 5;
                 messageCount++;
                 $(messages).append(msg);
 
                 if (messageCount > 200) {
-                    $("#OUTPUT-content .OUTPUT-message:first").remove();
+                    $("#output-content .output-message:first").remove();
                     messageCount--;
                 }
                 if (atBottom) {
                     $(sbc).scrollTop(sbc.scrollHeight);
                 }
             };
-            RED.comms.subscribe("OUTPUT",this.handleDebugMessage);
+            RED.comms.subscribe("output",this.handleDebugMessage);
 
-            $("#OUTPUT-tab-clear").click(function() {
-                $(".OUTPUT-message").remove();
+            $("#output-tab-clear").click(function() {
+                $(".output-message").remove();
                 messageCount = 0;
                 RED.nodes.eachNode(function(node) {
                     node.highlighted = false;
@@ -187,15 +187,15 @@
             });
         },
         onpaletteremove: function() {
-            RED.comms.unsubscribe("OUTPUT",this.handleDebugMessage);
-            RED.sidebar.removeTab("OUTPUT");
+            RED.comms.unsubscribe("output",this.handleDebugMessage);
+            RED.sidebar.removeTab("output");
             delete RED._debug;
         }
     });
 </script>
 
 <style>
-    #OUTPUT-content {
+    #output-content {
         position: absolute;
         top: 30px;
         bottom: 0px;
@@ -203,51 +203,51 @@
         right: 0px;
         overflow-y: scroll;
     }
-    #OUTPUT-toolbar {
+    #output-toolbar {
         padding: 3px 10px;
         height: 24px;
         background: #f3f3f3;
     }
-    .OUTPUT-message {
+    .output-message {
         cursor: pointer;
         border-bottom: 1px solid #eee;
         border-left: 8px solid #eee;
         border-right: 8px solid #eee;
         padding: 2px;
     }
-    .OUTPUT-message-date {
+    .output-message-date {
         background: #fff;
         font-size: 9px;
         color: #aaa;
         padding: 1px 5px 1px 1px;
     }
-    .OUTPUT-message-topic {
+    .output-message-topic {
         display: block;
         background: #fff;
         padding: 1px 5px;
         font-size: 10px;
         color: #a66;
     }
-    .OUTPUT-message-name {
+    .output-message-name {
         background: #fff;
         padding: 1px 5px;
         font-size: 9px;
         color: #aac;
     }
-    .OUTPUT-message-payload {
+    .output-message-payload {
         display: block;
         padding: 2px;
         background: #fff;
     }
-    .OUTPUT-message-level-log {
+    .output-message-level-log {
         border-left-color: #eee;
         border-right-color: #eee;
     }
-    .OUTPUT-message-level-30 {
+    .output-message-level-30 {
         border-left-color: #ffdf9d;
         border-right-color: #ffdf9d;
     }
-    .OUTPUT-message-level-20 {
+    .output-message-level-20 {
         border-left-color: #f99;
         border-right-color: #f99;
     }

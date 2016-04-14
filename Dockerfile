@@ -35,4 +35,4 @@ ADD ./red /red
 ADD ./test /test
 
 EXPOSE 8765
-ENTRYPOINT ["/usr/bin/nodejs","red.js", "sample-flow.json"]
+ENTRYPOINT ["/usr/bin/nodejs","red.js", "-m", "manager.algorun.org", "sample-flow.json"]

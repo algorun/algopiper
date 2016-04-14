@@ -40,15 +40,15 @@ module.exports = function(RED) {
         this.on("input",function(msg) {
             if (this.active) {
                 var computation_result = msg.payload;
-                sendDebug({id:this.id,name:"OUTPUT",topic:"computation result",msg:computation_result,_path:msg._path});
+                sendDebug({id:this.id,name:"output",topic:"computation result",msg:computation_result,_path:msg._path});
             }
         });
     }
 
-    RED.nodes.registerType("OUTPUT",DebugNode);
+    RED.nodes.registerType("output",DebugNode);
 
     function sendDebug(msg) {
-        RED.comms.publish("OUTPUT",msg);
+        RED.comms.publish("output",msg);
     }
 
     DebugNode.logHandler = new events.EventEmitter();
@@ -59,7 +59,7 @@ module.exports = function(RED) {
     });
     RED.log.addHandler(DebugNode.logHandler);
 
-    RED.httpAdmin.post("/OUTPUT/:id/:state", RED.auth.needsPermission("OUTPUT.write"), function(req,res) {
+    RED.httpAdmin.post("/output/:id/:state", RED.auth.needsPermission("output.write"), function(req,res) {
         var node = RED.nodes.getNode(req.params.id);
         var state = req.params.state;
         if (node !== null && typeof node !== "undefined" ) {

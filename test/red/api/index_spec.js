@@ -95,7 +95,7 @@ describe("api index", function() {
                         return done(err);
                     }
                     // Index page should probably mention Node-RED somewhere
-                    res.text.indexOf("Node-RED").should.not.eql(-1);
+                    res.text.indexOf("AlgoPiper").should.not.eql(-1);
                     done();
                 });
         });

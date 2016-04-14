@@ -40,7 +40,7 @@ describe("theme handler", function() {
         
         var context = theme.context();
         context.should.have.a.property("page");
-        context.page.should.have.a.property("title","Node-RED");
+        context.page.should.have.a.property("title","AlgoPiper");
         context.page.should.have.a.property("favicon","favicon.ico");
         context.should.have.a.property("header");
         context.header.should.have.a.property("title","Node-RED");

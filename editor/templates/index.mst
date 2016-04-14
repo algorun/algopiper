@@ -237,7 +237,7 @@ intro.setOptions({
         },
         {
             element: document.querySelector('#palette-container'),
-            intro: "<b>Great!</b><br> You will need to print the result after the computation. Drag and drop an <span style='color: #87A980'><b>OUTPUT</b></span> node to the right of the AlgoRun node ..",
+            intro: "<b>Great!</b><br> You will need to print the result after the computation. Drag and drop an <span style='color: #87A980'><b>output</b></span> node to the right of the AlgoRun node ..",
             position: 'right'
         },
         {

@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env nodejs
 /**
  * Copyright 2013, 2015 IBM Corp.
  *
@@ -29,14 +29,6 @@ var server;
 var app = express();
 var guide = true;
 
-app.get('/algomanager', function(req, res){
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Headers", "X-Requested-With");
-    
-    res.status = 200;
-    res.send({'algomanager': settings.algomanager});
-    return;
-});
 app.get('/guide', function(req, res){
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Headers", "X-Requested-With");
@@ -53,12 +45,14 @@ var settingsFile;
 var flowFile;
 
 var knownOpts = {
+    "manager": String,
     "settings":[path],
     "userDir":[path],
     "v": Boolean,
     "help": Boolean
 };
 var shortHands = {
+    "m":["--manager"],
     "s":["--settings"],
     "u":["--userDir"],
     "?":["--help"]
@@ -67,19 +61,20 @@ nopt.invalidHandler = function(k,v,t) {
     // TODO: console.log(k,v,t);
 }
 
-var parsedArgs = nopt(knownOpts,shortHands,process.argv,2)
+var parsedArgs = nopt(knownOpts,shortHands,process.argv,2);
 
 if (parsedArgs.help) {
-    console.log("Node-RED v"+RED.version());
-    console.log("Usage: node-red [-v] [-?] [--settings settings.js] [--userDir DIR] [flows.json]");
+    console.log("AlgoPiper v"+RED.version());
+    console.log("Usage: node-red [-v] [-?] [--manager URL] [--settings settings.js] [--userDir DIR] [flows.json]");
     console.log("");
     console.log("Options:");
+    console.log("  -m, --manager URL  use specified algomanager endpoint");
     console.log("  -s, --settings FILE  use specified settings file");
     console.log("  -u, --userDir  DIR   use specified user directory");
     console.log("  -v                   enable verbose output");
     console.log("  -?, --help           show usage");
     console.log("");
-    console.log("Documentation can be found at http://nodered.org");
+    console.log("Documentation can be found at http://algopiper.org");
     process.exit();
 }
 if (parsedArgs.argv.remain.length > 0) {
@@ -107,6 +102,25 @@ if (parsedArgs.settings) {
         }
     }
 }
+
+if(parsedArgs.manager == undefined){
+    console.log("ERROR: You must pass algomanager url");
+    console.log("Use: nodejs red.js -m URL");
+    process.exit();
+}
+var algomanager = parsedArgs.manager;
+if(algomanager.indexOf("http://") == -1){
+    algomanager = "http://" + algomanager;
+}
+
+app.get('/algomanager', function(req, res){
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "X-Requested-With");
+    
+    res.status = 200;
+    res.send({'algomanager': algomanager});
+    return;
+});
 
 try {
     var settings = require(settingsFile);
@@ -175,7 +189,7 @@ try {
     RED.init(server,settings);
 } catch(err) {
     if (err.code == "not_built") {
-        console.log("Node-RED has not been built. See README.md for details");
+        console.log("AlgoPiper has not been built. See README.md for details");
     } else {
         console.log("Failed to start server:");
         if (err.stack) {

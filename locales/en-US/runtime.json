@@ -1,6 +1,6 @@
 {
     "runtime": {
-        "welcome": "Welcome to Node-RED",
+        "welcome": "Welcome to AlgoPiper",
         "version": "__component__ version: __version__",
         "paths": {
             "settings": "Settings file  : __path__"
