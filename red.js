@@ -36,7 +36,7 @@ app.get('/guide', function(req, res){
     if(req.query.stop != undefined){
         guide = false;
     }
-    
+
     res.status = 200;
     res.send({'guide': guide});
     return;
@@ -103,12 +103,13 @@ if (parsedArgs.settings) {
     }
 }
 
-if(parsedArgs.manager == undefined){
+if(parsedArgs.manager == undefined && process.env.MANAGER == undefined){
     console.log("ERROR: You must pass algomanager url");
-    console.log("Use: nodejs red.js -m URL");
+    console.log("Use: nodejs red.js -m URL <OR>");
+    console.log("     docker run -p <port>:8765 -e MANAGER=<manager_endpoint> algorun/algopiper");
     process.exit();
 }
-var algomanager = parsedArgs.manager;
+var algomanager = parsedArgs.manager || process.env.MANAGER;
 if(algomanager.indexOf("http://") == -1){
     algomanager = "http://" + algomanager;
 }
@@ -116,7 +117,7 @@ if(algomanager.indexOf("http://") == -1){
 app.get('/algomanager', function(req, res){
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Headers", "X-Requested-With");
-    
+
     res.status = 200;
     res.send({'algomanager': algomanager});
     return;
