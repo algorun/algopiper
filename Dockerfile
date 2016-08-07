@@ -26,7 +26,6 @@ npm install
 ADD red.js /
 ADD settings.js /
 ADD sample-flow.json /
-ADD ./bin /bin/
 ADD ./editor /editor
 ADD ./locales /locales
 ADD ./nodes /nodes

@@ -11,6 +11,7 @@ module.exports = function(RED) {
             algomanager = JSON.parse(body).algomanager;
         }
     });
+    
     function sendDebug(msg) {
         RED.comms.publish("output", msg);
     }
