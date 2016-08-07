@@ -5,12 +5,6 @@ module.exports = function(RED) {
     var request = require('request');
     var settings = require('../../settings.js');
     var algomanager;
-    // Configure AlgoManager
-    request('http://localhost:8765/algomanager', function (error, response, body) {
-        if (!error && response.statusCode == 200) {
-            algomanager = JSON.parse(body).algomanager;
-        }
-    });
     
     function sendDebug(msg) {
         RED.comms.publish("output", msg);
@@ -32,7 +26,9 @@ module.exports = function(RED) {
             
             node.status({fill:"yellow",shape:"ring",text:"initializing.."});
             
-            
+            request('http://localhost:8765/algomanager', function (error, response, body) {
+        	if (!error && response.statusCode == 200) {
+			algomanager = JSON.parse(body).algomanager;
             // get endpoint from algomanager
             request.post(algomanager + '/api/v1/deploy', {form: {'docker_image': docker_image, node_id: node.id}}, 
                          function(error, response, body){        
@@ -54,7 +50,8 @@ module.exports = function(RED) {
                                 console.error(body);
                                 node.status({fill:"red",shape:"dot",text:'algomanager server error!'});
                             }
-                        });
+                        });}
+		});
         });
         function algo_run(module_server, input_data){
             node.status({fill:"blue",shape:"ring",text:"computing.."});

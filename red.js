@@ -26,9 +26,33 @@ var RED = require("./red/red.js");
 var log = require("./red/log");
 var request = require('request');
 
+var settingsFile;
+var flowFile="sample-flow.json";
+var guide = true;
+
+if (process.env.PIPELINE_URL != undefined && process.env.PIPELINE_NAME != undefined) {
+    var tab_string = '{"type":"tab","id":"65b5a326.9a4a5c","label":"' + process.env.PIPELINE_NAME + '"},'
+    request(process.env.PIPELINE_URL, function (error, response, body) {
+        if (!error && response.statusCode == 200) {
+            var pipeline = body;
+            var sample_pipeline = pipeline.slice(0, 1) + tab_string + pipeline.slice(1);
+            fs.writeFile(flowFile, sample_pipeline, function(err) {
+                if(err) {
+                    return console.log(err);
+                }
+                console.log("Pipeline loaded!");
+                guide = false;
+		startServer();
+            });
+        }
+    });
+}else{
+	startServer();
+}
+function startServer(){
 var server;
 var app = express();
-var guide = true;
+
 
 app.get('/guide', function(req, res){
     res.header("Access-Control-Allow-Origin", "*");
@@ -42,8 +66,7 @@ app.get('/guide', function(req, res){
     res.send({'guide': guide});
     return;
 });
-var settingsFile;
-var flowFile;
+
 
 var knownOpts = {
     "manager": String,
@@ -79,7 +102,7 @@ if (parsedArgs.help) {
     process.exit();
 }
 if (parsedArgs.argv.remain.length > 0) {
-    flowFile = parsedArgs.argv.remain[0];
+    // flowFile = parsedArgs.argv.remain[0];
 }
 
 if (parsedArgs.settings) {
@@ -113,23 +136,6 @@ if(parsedArgs.manager == undefined && process.env.MANAGER == undefined){
 var algomanager = parsedArgs.manager || process.env.MANAGER;
 if(algomanager.indexOf("http://") == -1){
     algomanager = "http://" + algomanager;
-}
-
-if (process.env.PIPELINE_URL != undefined && process.env.PIPELINE_NAME != undefined) {
-    var tab_string = '{"type":"tab","id":"65b5a326.9a4a5c","label":"' + process.env.PIPELINE_NAME + '"},'
-    request(process.env.PIPELINE_URL, function (error, response, body) {
-        if (!error && response.statusCode == 200) {
-            var pipeline = body;
-            var sample_pipeline = pipeline.slice(0, 1) + tab_string + pipeline.slice(1);
-            fs.writeFile(flowFile, sample_pipeline, function(err) {
-                if(err) {
-                    return console.log(err);
-                }
-                console.log("Pipeline loaded!");
-                guide = false;
-            });
-        }
-    });
 }
 
 app.get('/algomanager', function(req, res){
@@ -197,9 +203,9 @@ if (settings.httpNodeRoot !== false) {
 settings.uiPort = settings.uiPort||1880;
 settings.uiHost = settings.uiHost||"0.0.0.0";
 
-if (flowFile) {
-    settings.flowFile = flowFile;
-}
+//if (flowFile) {
+//    settings.flowFile = "sample-flow.json"; //flowFile;
+//}
 if (parsedArgs.userDir) {
     settings.userDir = parsedArgs.userDir;
 }
@@ -319,4 +325,4 @@ process.on('SIGINT', function () {
     // TODO: need to allow nodes to close asynchronously before terminating the
     // process - ie, promises
     process.exit();
-});
+});}
