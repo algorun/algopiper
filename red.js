@@ -24,6 +24,7 @@ var path = require("path");
 var fs = require("fs");
 var RED = require("./red/red.js");
 var log = require("./red/log");
+var request = require('request');
 
 var server;
 var app = express();
@@ -112,6 +113,23 @@ if(parsedArgs.manager == undefined && process.env.MANAGER == undefined){
 var algomanager = parsedArgs.manager || process.env.MANAGER;
 if(algomanager.indexOf("http://") == -1){
     algomanager = "http://" + algomanager;
+}
+
+if (process.env.PIPELINE_URL != undefined && process.env.PIPELINE_NAME != undefined) {
+    var tab_string = '{"type":"tab","id":"65b5a326.9a4a5c","label":"' + process.env.PIPELINE_NAME + '"},'
+    request(process.env.PIPELINE_URL, function (error, response, body) {
+        if (!error && response.statusCode == 200) {
+            var pipeline = body;
+            var sample_pipeline = pipeline.slice(0, 1) + tab_string + pipeline.slice(1);
+            fs.writeFile(flowFile, sample_pipeline, function(err) {
+                if(err) {
+                    return console.log(err);
+                }
+                console.log("Pipeline loaded!");
+                guide = false;
+            });
+        }
+    });
 }
 
 app.get('/algomanager', function(req, res){
