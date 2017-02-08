@@ -291,22 +291,29 @@
                             $('#module-info').html(data['error_message']);
                             return;
                         }
+                        data = JSON.parse(data);
                         var algo_docker_server = data['endpoint'];
                         node.algo_docker_server = algo_docker_server;
                         
                         var still_working = "still getting algorithm info ";
-                        setTimeout(showName, 1000);
+                        setTimeout(showName, 2000);
                         function showName(){
                             var jqxhr = $.get(algo_docker_server + '/v1/manifest')
-                                .done(function(manifest) {
-                                    $('#module-info').html(manifest['algo_summary']);
-                                    node.manifest = manifest;
+                                .success(function(data,textStatus,jqXHR) {
+                                    $('#module-info').html(data['algo_summary']);
+                                    node.manifest = data;
                                     still_working = "still getting algorithm info ";
                                 })
-                                .fail(function(data) {
-                                    $('#module-info').html(still_working);    
-                                    setTimeout(showName, 1000);
-                                    still_working += '.';
+                                .error(function(data,textStatus,jqXHR) {
+                                    if(data["status"] == 200){
+                                        $('#module-info').html(data['responseText']['algo_summary']);
+                                        node.manifest = data['responseText'];
+                                        still_working = "still getting algorithm info ";
+                                    } else {
+                                        $('#module-info').html(still_working);    
+                                        setTimeout(showName, 1000);
+                                        still_working += '.';      
+                                    }
                                 });    
                         }
                     })
@@ -410,7 +417,7 @@
                         algomanager = data.algomanager;
                         var jqxhr = $.get(algomanager + "/api/v1/list")
                             .done(function(data,textStatus,jqXHR) {
-                                images = data.images;
+                                images = JSON.parse(data).images;
                             })
 	                       .fail(function(data,textStatus,jqXHR) {
                                alert('failed to list available AlgoRun images. Check the server settings file!')

@@ -56,20 +56,21 @@ module.exports = function(RED) {
         function algo_run(module_server, input_data){
             node.status({fill:"blue",shape:"ring",text:"computing.."});
             request.post(
-                module_server + '/v1/run',
+                module_server + '/v2/run',
                 { form: { input: input_data } },
                 function (error, response, body) {
                     if (!error && response.statusCode == 200) {
-                        module_msg.payload = body;
+                        var result = JSON.parse(body)['output']
+                        module_msg.payload = result;
                         
                         // write data to a file
-                        fs.writeFile(log_file, body, "binary", function (err) {
+                        fs.writeFile(log_file, result, "binary", function (err) {
                             if (err) {
                                 if ((err.code === "ENOENT")) {
                                     fs.ensureFile(log_file, function (err) {
                                         if (err) { node.error(RED._("file.errors.createfail",{error:err.toString()}),module_msg); }
                                         else {
-                                            fs.writeFile(log_file, body, "binary", function (err) {
+                                            fs.writeFile(log_file, result, "binary", function (err) {
                                                 if (err) { node.error(RED._("file.errors.writefail",{error:err.toString()}),module_msg); }
                                             });
                                         }
