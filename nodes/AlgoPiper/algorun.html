@@ -100,9 +100,9 @@
         info_tab += '\nmore information: ' + module_manifest["algo_website"] + '\n';
         info_tab += '___\n';
         info_tab += '# Input Type\n'
-        info_tab += module_manifest['input_type'] + '\n';
+        info_tab += module_manifest['algo_input'][0]['accepted_format'] + '\n';
         info_tab += '# Output Type\n'
-        info_tab += module_manifest['output_type'] + '\n';
+        info_tab += module_manifest['algo_output'][0]['format'] + '\n';
         info_tab += '# About AlgoRun\n';
         info_tab += 'This algorithm is provided to you by AlgoRun. AlgoRun aims at fixing computational science reproducibility by offering an easy way to publish and use algorithms. More information on [http://algorun.org](http://algorun.org)';
         
