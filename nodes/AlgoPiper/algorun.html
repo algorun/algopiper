@@ -115,6 +115,8 @@
         defaults: {
             module: {value:""},
             docker_image: {value: "none"},
+            cpu_share: {value: "1024"},
+            memory_limit: {value: "128m"},
             algo_docker_server: {value: undefined},
             module_manifest: {value: undefined},
             algo_params: {value:{}},
@@ -285,7 +287,9 @@
                     $('#module-info').html('Select a module to display info ..');
                     return;
                 }
-                var jqxhr = $.post(algomanager + "/api/v1/deploy", {docker_image: this.value, node_id: node.id})
+                var cpu_share = $('#node-input-cpu_share').val();
+                var memory_limit = $('#node-input-memory_limit').val();
+                var jqxhr = $.post(algomanager + "/api/v1/deploy", {docker_image: this.value, node_id: node.id, cpu_share: cpu_share, memory_limit: memory_limit})
                     .done(function(data,textStatus,jqXHR) {
                         if(data['status'] === 'fail'){
                             $('#module-info').html(data['error_message']);
@@ -455,16 +459,16 @@
 
 <script type="text/x-red" data-template-name="AlgoRun">
     <div class="form-row" id="cpu">
-        <label for="node-input-cpu" style="width:40%"><i class="icon-tag"></i> CPU Share</label>
-        <select id="node-input-cpu" style="width:58%">
+        <label for="node-input-cpu_share" style="width:40%"><i class="icon-tag"></i> CPU Share</label>
+        <select id="node-input-cpu_share" style="width:58%">
             <option value="512">512 (less)</option>
             <option value="1024" selected="selected">1024 (default)</option>
             <option value="2048">2048 (more)</option>
         </select>
     </div>
     <div class="form-row" id="memory">
-        <label for="node-input-memory" style="width:40%"><i class="icon-tag"></i> Memory Limit</label>
-        <select id="node-input-memory" style="width:58%"> 
+        <label for="node-input-memory_limit" style="width:40%"><i class="icon-tag"></i> Memory Limit</label>
+        <select id="node-input-memory_limit" style="width:58%"> 
             <option value="128m" selected="selected">128M (default)</option>
             <option value="256m">256M</option>
             <option value="512m">512M</option>

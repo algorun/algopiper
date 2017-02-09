@@ -30,7 +30,7 @@ module.exports = function(RED) {
         	if (!error && response.statusCode == 200) {
 			algomanager = JSON.parse(body).algomanager;
             // get endpoint from algomanager
-            request.post(algomanager + '/api/v1/deploy', {form: {'docker_image': docker_image, node_id: node.id}}, 
+            request.post(algomanager + '/api/v1/deploy', {form: {'docker_image': docker_image, node_id: node.id, cpu_share: node.cpu_share, memory_limit: node.memory_limit}}, 
                          function(error, response, body){        
                             if (!error && response.statusCode == 200) {
                                 var deploy_result = JSON.parse(body);
