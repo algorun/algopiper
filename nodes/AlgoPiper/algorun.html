@@ -306,6 +306,8 @@
                                 })
                                 .error(function(data,textStatus,jqXHR) {
                                     if(data["status"] == 200){
+                                        data = stripJsonComments(JSON.stringify(data));
+                                        data = JSON.parse(data);
                                         $('#module-info').html(data['responseText']['algo_summary']);
                                         node.manifest = data['responseText'];
                                         still_working = "still getting algorithm info ";
@@ -452,11 +454,28 @@
 </script>
 
 <script type="text/x-red" data-template-name="AlgoRun">
-    <div class="form-row" id="choose-algorithm">
-        <label for="node-input-docker_image"><i class="icon-tag"></i> Module</label>
-        <select id="node-input-docker_image" style="width:73%">        
+    <div class="form-row" id="cpu">
+        <label for="node-input-cpu" style="width:40%"><i class="icon-tag"></i> CPU Share</label>
+        <select id="node-input-cpu" style="width:58%">
+            <option value="512">512 (less)</option>
+            <option value="1024" selected="selected">1024 (default)</option>
+            <option value="2048">2048 (more)</option>
         </select>
-
+    </div>
+    <div class="form-row" id="memory">
+        <label for="node-input-memory" style="width:40%"><i class="icon-tag"></i> Memory Limit</label>
+        <select id="node-input-memory" style="width:58%"> 
+            <option value="128m" selected="selected">128M (default)</option>
+            <option value="256m">256M</option>
+            <option value="512m">512M</option>
+            <option value="1g">1G</option>
+            <option value="2g">2G</option>
+        </select>
+    </div>
+    <div class="form-row" id="choose-algorithm">
+        <label for="node-input-docker_image" style="width:40%"><i class="icon-tag"></i> Algorithm</label>
+        <select id="node-input-docker_image" style="width:58%">        
+        </select>
     </div>
     <div class="form-tips" id="module-info">Select a module to display info ..</div>
 </script>
