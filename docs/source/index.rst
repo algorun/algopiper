@@ -7,14 +7,21 @@ Contents
 --------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    
    access-algopiper
    user-guide
    examples
+   local-installation
    license
    help
-   
-Need Help?
-----------
-Please contact Abdelrahman Hosny at abdelrahman.hosny@hotmail.com
+
+.. include:: access-algopiper.rst
+
+.. include:: user-guide.rst
+
+.. include:: examples.rst
+
+.. include:: local-installation.rst
+
+.. include:: help.rst
