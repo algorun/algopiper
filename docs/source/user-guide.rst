@@ -19,7 +19,7 @@ To create a pipeline, drag and drop nodes from the left-side bar. A basic pipeli
 
 .. centered:: Figure 2 - Input node dialog
 
-• **AlgoRun node(s):** each AlgoRun node represents an algorithm ready to be run on a given input. The input is passed to the node from the left. The output from the node is produced toward the right. Drag an AlgoRun node into the main workspace. Double click on the node to select an algorithm from the list.
+• **AlgoRun node(s):** each AlgoRun node represents an algorithm ready to be run on a given input. The input is passed to the node from the left. The output from the node is produced toward the right. Drag an AlgoRun node into the main workspace. Double click on the node to select an algorithm from the list. The CPU share is a relative measure of how many CPU cycles are allocated for each container on the AlgoManager instance (`read more <https://docs.docker.com/engine/reference/run/#cpu-share-constraint>`_ ). The memory limit is an absolute measure of the maximum amout of RAM allocated to this specific AlgoRun container (`read more <https://docs.docker.com/engine/reference/run/#user-memory-constraints>`_ ).
 
 .. image:: /images/figure-3.png
         :align: center

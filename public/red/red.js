@@ -185,8 +185,8 @@ var RED = (function() {
                 null,
                 {id:"menu-item-keyboard-shortcuts",label:RED._("menu.label.keyboardShortcuts"),onselect:RED.keyboard.showHelp},
                 {id:"menu-item-help",
-                    label: RED.settings.theme("menu.menu-item-help.label","Node-RED Website"),
-                    href: RED.settings.theme("menu.menu-item-help.url","http://nodered.org/docs")
+                    label: RED.settings.theme("menu.menu-item-help.label","AlgoPiper Website"),
+                    href: RED.settings.theme("menu.menu-item-help.url","http://algopiper.org")
                 }
             ]
         });

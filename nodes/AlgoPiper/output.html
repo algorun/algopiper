@@ -24,13 +24,14 @@
 
 <script type="text/javascript">
     RED.nodes.registerType('output',{
-        category: 'input',
+        category: 'output',
         defaults: {
             active: {value:true},
             console: {value:"false"},
             complete: {value:"false", required:true}
         },
-        label: "output",
+        label: "AlgoPiper_Output",
+        paletteLabel: "AlgoPiper_Output",
         color:"#87a980",
         inputs:1,
         outputs:0,
