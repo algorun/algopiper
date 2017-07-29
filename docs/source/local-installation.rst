@@ -14,7 +14,7 @@ Download AlgoManager
 1. Clone AlgoManager repository https://github.com/algorun/algomanager
 2. Navigate to the downloaded folder.
 3. Run the script ``run.sh``
-4. Go to http://localhost:8080 and make sure it is working
+4. Go to http://localhost:8000 and make sure it is working
 
 Configuring the Production Environment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
